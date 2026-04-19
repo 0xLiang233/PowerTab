@@ -1,10 +1,19 @@
 {
   "manifest_version": 3,
   "name": "Power Tab",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A new-tab launcher and tab manager that reuses open tabs intelligently.",
-  "permissions": ["tabs", "storage", "favicon", "scripting", "activeTab"],
-  "host_permissions": ["http://*/*", "https://*/*"],
+  "permissions": [
+    "tabs",
+    "storage",
+    "favicon",
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ],
   "commands": {
     "quick-tab-switcher": {
       "suggested_key": {
