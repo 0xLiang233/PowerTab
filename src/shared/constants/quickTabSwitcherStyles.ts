@@ -19,91 +19,104 @@ export const QUICK_TAB_SWITCHER_CSS = `
   z-index: 2147483647;
   display: grid;
   place-items: center;
-  background: rgba(15, 12, 10, 0.26);
-  padding: 28px;
+  background: rgba(15, 12, 10, 0.1);
+  padding: 24px;
 }
 
 .power-tab-switcher {
-  width: min(1040px, 100%);
-  max-height: min(78vh, 760px);
+  width: min(980px, 100%);
+  max-height: min(76vh, 700px);
   overflow: auto;
-  border: 1px solid rgba(229, 221, 209, 0.9);
-  border-radius: 24px;
-  background: rgba(255, 253, 249, 0.98);
+  border: 1px solid rgba(229, 221, 209, 0.62);
+  border-radius: 22px;
+  background: rgba(255, 253, 249, 0.66);
   color: #1f1915;
-  box-shadow: 0 28px 70px rgba(15, 12, 10, 0.22);
-  padding: 18px 18px 20px;
+  box-shadow: 0 24px 56px rgba(15, 12, 10, 0.14);
+  backdrop-filter: blur(22px) saturate(135%);
+  -webkit-backdrop-filter: blur(22px) saturate(135%);
+  padding: 16px 16px 18px;
 }
 
 .power-tab-switcher__header {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 14px;
+  gap: 18px;
+  margin-bottom: 12px;
 }
 
 .power-tab-switcher__label {
   color: #b66a38;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 13px;
+  letter-spacing: 0.11em;
+  font-size: 12px;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .power-tab-switcher__hint {
   color: #7d7168;
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 12px;
+  line-height: 1.35;
   text-align: right;
+  white-space: nowrap;
 }
 
 .power-tab-switcher__list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
 }
 
 .power-tab-switcher__item {
-  min-height: 168px;
+  min-height: 138px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 14px;
-  border: 1px solid rgba(229, 221, 209, 0.92);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.9);
-  padding: 18px;
+  gap: 10px;
+  border: 1px solid rgba(229, 221, 209, 0.86);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+  padding: 14px;
   color: inherit;
   text-align: left;
-  box-shadow: 0 12px 28px rgba(31, 25, 21, 0.06);
+  box-shadow: 0 10px 22px rgba(31, 25, 21, 0.045);
+  transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.power-tab-switcher__item:hover {
+  border-color: rgba(182, 106, 56, 0.26);
+  background: rgba(255, 250, 245, 0.84);
+  box-shadow: 0 12px 24px rgba(31, 25, 21, 0.055);
+  transform: translateY(-1px);
 }
 
 .power-tab-switcher__item--active {
-  border-color: rgba(182, 106, 56, 0.44);
-  background: rgba(182, 106, 56, 0.1);
-  box-shadow: 0 0 0 3px rgba(182, 106, 56, 0.12), 0 18px 36px rgba(31, 25, 21, 0.08);
+  border-color: rgba(182, 106, 56, 0.34);
+  background: rgba(255, 248, 241, 0.88);
+  box-shadow: 0 0 0 2px rgba(182, 106, 56, 0.1), 0 14px 26px rgba(31, 25, 21, 0.06);
+  transform: translateY(-1px);
 }
 
 .power-tab-switcher__favicon-shell {
-  width: 32px;
-  height: 32px;
+  width: 26px;
+  height: 26px;
   display: block;
 }
 
 .power-tab-switcher__favicon {
-  width: 32px;
-  height: 32px;
+  width: 26px;
+  height: 26px;
   display: block;
-  flex: 0 0 32px;
-  border-radius: 9px;
+  flex: 0 0 26px;
+  border-radius: 8px;
 }
 
 .power-tab-switcher__favicon--fallback {
   display: grid;
   place-items: center;
   color: #b66a38;
-  font-size: 28px;
+  font-size: 22px;
   line-height: 1;
 }
 
@@ -112,7 +125,7 @@ export const QUICK_TAB_SWITCHER_CSS = `
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .power-tab-switcher__title,
@@ -125,16 +138,17 @@ export const QUICK_TAB_SWITCHER_CSS = `
 
 .power-tab-switcher__title {
   -webkit-line-clamp: 3;
-  font-size: 16px;
-  line-height: 1.4;
+  font-size: 14px;
+  line-height: 1.32;
   font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .power-tab-switcher__subtitle {
   -webkit-line-clamp: 2;
   color: #7d7168;
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.45;
   word-break: break-word;
 }
 

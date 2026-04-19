@@ -9,6 +9,7 @@ import {
 } from '@/shared/constants/quickTabSwitcher';
 import { QUICK_TAB_SWITCHER_CSS } from '@/shared/constants/quickTabSwitcherStyles';
 import type { QuickTabSwitcherFocusMessage, QuickTabSwitcherOpenMessage, TabEntity } from '@/shared/types/models';
+import { getHostnameInitial } from '@/shared/utils/url';
 
 function refreshBadge() {
   void updateBadge();
@@ -196,6 +197,18 @@ function mountQuickTabSwitcher(cssText: string) {
       const nextIndex = Number(button.dataset.index);
       void select(Number.isNaN(nextIndex) ? undefined : nextIndex);
     });
+    button.addEventListener('mouseenter', () => {
+      const nextIndex = Number(button.dataset.index);
+      if (Number.isNaN(nextIndex)) return;
+      highlightedIndex = nextIndex;
+      updateHighlight();
+    });
+    button.addEventListener('focus', () => {
+      const nextIndex = Number(button.dataset.index);
+      if (Number.isNaN(nextIndex)) return;
+      highlightedIndex = nextIndex;
+      updateHighlight();
+    });
     return button;
   }
 
@@ -205,15 +218,26 @@ function mountQuickTabSwitcher(cssText: string) {
     const subtitle = button.querySelector<HTMLElement>('.power-tab-switcher__subtitle');
     if (!faviconShell || !title || !subtitle) return;
 
-    title.textContent = tab.title;
-    subtitle.textContent = tab.hostname;
+    if (title.textContent !== tab.title) {
+      title.textContent = tab.title;
+    }
+    if (subtitle.textContent !== tab.hostname) {
+      subtitle.textContent = tab.hostname;
+    }
     renderFavicon(faviconShell, tab);
   }
 
   function renderFavicon(container: HTMLElement, tab: TabEntity) {
-    container.innerHTML = '';
+    const faviconUrl = tab.favIconUrl;
+    const faviconKey = faviconUrl ? `icon:${faviconUrl}` : `fallback:${tab.hostname}`;
+    if (container.dataset.faviconKey === faviconKey) {
+      return;
+    }
 
-    if (!tab.favIconUrl) {
+    container.dataset.faviconKey = faviconKey;
+    container.replaceChildren();
+
+    if (!faviconUrl) {
       container.appendChild(createFallbackFavicon(tab.hostname));
       return;
     }
@@ -221,10 +245,12 @@ function mountQuickTabSwitcher(cssText: string) {
     const image = document.createElement('img');
     image.className = 'power-tab-switcher__favicon';
     image.alt = tab.hostname;
-    image.src = tab.favIconUrl;
+    image.src = faviconUrl;
+    image.referrerPolicy = 'no-referrer';
+    image.decoding = 'async';
     image.addEventListener('error', () => {
-      container.innerHTML = '';
-      container.appendChild(createFallbackFavicon(tab.hostname));
+      container.dataset.faviconKey = `fallback:${tab.hostname}`;
+      container.replaceChildren(createFallbackFavicon(tab.hostname));
     }, { once: true });
     container.appendChild(image);
   }
@@ -232,7 +258,7 @@ function mountQuickTabSwitcher(cssText: string) {
   function createFallbackFavicon(hostname: string) {
     const fallback = document.createElement('span');
     fallback.className = 'power-tab-switcher__favicon power-tab-switcher__favicon--fallback';
-    fallback.textContent = hostname.slice(0, 1).toUpperCase() || '•';
+    fallback.textContent = getHostnameInitial(hostname);
     return fallback;
   }
 
@@ -278,6 +304,51 @@ function mountQuickTabSwitcher(cssText: string) {
     render();
   }
 
+  function moveVertical(direction: 1 | -1) {
+    if (!list || tabs.length === 0) return;
+
+    const cards = [...list.querySelectorAll<HTMLButtonElement>('.power-tab-switcher__item')];
+    const currentCard = cards[highlightedIndex];
+    if (!currentCard) return;
+
+    const currentRect = currentCard.getBoundingClientRect();
+    const currentCenterX = currentRect.left + currentRect.width / 2;
+    const currentCenterY = currentRect.top + currentRect.height / 2;
+
+    let bestIndex = -1;
+    let bestScore = Number.POSITIVE_INFINITY;
+
+    cards.forEach((card, index) => {
+      if (index === highlightedIndex) return;
+
+      const rect = card.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      const deltaY = centerY - currentCenterY;
+
+      if ((direction === 1 && deltaY <= 0) || (direction === -1 && deltaY >= 0)) {
+        return;
+      }
+
+      const verticalDistance = Math.abs(deltaY);
+      const horizontalDistance = Math.abs(centerX - currentCenterX);
+      const score = verticalDistance * 1000 + horizontalDistance;
+
+      if (score < bestScore) {
+        bestScore = score;
+        bestIndex = index;
+      }
+    });
+
+    if (bestIndex >= 0) {
+      highlightedIndex = bestIndex;
+      updateHighlight();
+      return;
+    }
+
+    move(direction);
+  }
+
   async function select(index?: number) {
     if (typeof index === 'number') {
       highlightedIndex = index;
@@ -304,6 +375,16 @@ function mountQuickTabSwitcher(cssText: string) {
     if (event.key === 'ArrowLeft') {
       event.preventDefault();
       move(-1);
+      return;
+    }
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      moveVertical(-1);
+      return;
+    }
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      moveVertical(1);
       return;
     }
     if (event.key === 'Enter') {

@@ -29,3 +29,14 @@ export function getDisplayUrl(value: string): string {
   const search = parsed.search ? '…' : '';
   return `${parsed.hostname}${pathname}${search}`;
 }
+
+export function getHostnameInitial(hostname: string): string {
+  const normalized = hostname.trim().replace(/^www\./i, '');
+  const alphanumeric = normalized.match(/[A-Za-z0-9]/)?.[0];
+  if (alphanumeric) {
+    return alphanumeric.toUpperCase();
+  }
+
+  const firstChar = normalized.charAt(0);
+  return firstChar ? firstChar.toUpperCase() : '•';
+}
