@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "version-sync": "node scripts/update-manifest-version.js",
+    "prebuild": "pnpm version-sync",
     "build": "vite build",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run"

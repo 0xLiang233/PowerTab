@@ -139,10 +139,10 @@ function mountQuickTabSwitcher(cssText: string) {
   document.documentElement.appendChild(root);
   console.log('[QuickTabSwitcher][content] root mounted');
 
-  const backdrop = root.querySelector('.power-tab-switcher__backdrop');
-  const shell = root.querySelector('.power-tab-switcher');
-  const list = root.querySelector('.power-tab-switcher__list');
-  const empty = root.querySelector('.power-tab-switcher__empty');
+  const backdrop = root.querySelector<HTMLDivElement>('.power-tab-switcher__backdrop');
+  const shell = root.querySelector<HTMLDivElement>('.power-tab-switcher');
+  const list = root.querySelector<HTMLDivElement>('.power-tab-switcher__list');
+  const empty = root.querySelector<HTMLDivElement>('.power-tab-switcher__empty');
   let tabs: TabEntity[] = [];
   let highlightedIndex = 0;
   let isOpen = false;
