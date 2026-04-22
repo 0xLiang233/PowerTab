@@ -41,6 +41,11 @@ export interface TabGroup {
   duplicateUrls: string[];
 }
 
+export interface PowerTabDuplicateSummary {
+  tabs: TabEntity[];
+  closableCount: number;
+}
+
 export interface QuickTabSwitcherOpenMessage {
   type: 'power-tab:open-quick-tab-switcher';
   tabs: TabEntity[];

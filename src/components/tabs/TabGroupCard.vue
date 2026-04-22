@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import TabRow from '@/components/tabs/TabRow.vue';
+import { getClosableDuplicateTabIds } from '@/domain/tabs/findDuplicates';
 import type { TabEntity, TabGroup } from '@/shared/types/models';
 
 const props = defineProps<{
@@ -14,24 +15,7 @@ const emit = defineEmits<{
   closeDuplicates: [group: TabGroup];
 }>();
 
-const closableDuplicateCount = computed(() => {
-  const duplicateUrls = new Set(props.group.duplicateUrls);
-  const kept = new Set<string>();
-  let count = 0;
-
-  for (const tab of props.group.tabs) {
-    if (!duplicateUrls.has(tab.normalizedUrl)) continue;
-    if (!kept.has(tab.normalizedUrl)) {
-      kept.add(tab.normalizedUrl);
-      continue;
-    }
-    if (!tab.active) {
-      count += 1;
-    }
-  }
-
-  return count;
-});
+const closableDuplicateCount = computed(() => getClosableDuplicateTabIds(props.group.tabs).length);
 
 const groupFaviconUrl = computed(() => props.group.tabs.find((tab) => tab.favIconUrl)?.favIconUrl);
 </script>

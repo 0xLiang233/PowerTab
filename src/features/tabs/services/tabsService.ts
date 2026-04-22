@@ -1,7 +1,14 @@
-import { closeTab, closeTabs, focusTab, listOpenTabs, listWindowTabs } from '@/infrastructure/chrome/tabGateway';
+import {
+  closeTab,
+  closeTabs,
+  focusTab,
+  listOpenTabs,
+  listPowerTabTabs,
+  listWindowTabs,
+} from '@/infrastructure/chrome/tabGateway';
 import { groupTabs } from '@/domain/tabs/groupTabs';
-import { findDuplicateUrls } from '@/domain/tabs/findDuplicates';
-import type { TabEntity, TabGroup } from '@/shared/types/models';
+import { getClosableDuplicateTabIds } from '@/domain/tabs/findDuplicates';
+import type { PowerTabDuplicateSummary, TabEntity, TabGroup } from '@/shared/types/models';
 
 export async function getTabGroups(): Promise<TabGroup[]> {
   const tabs = await listOpenTabs();
@@ -28,21 +35,19 @@ export async function closeGroupTabs(group: TabGroup): Promise<void> {
   await closeTabs(group.tabs.map((tab) => tab.id));
 }
 
+export async function getPowerTabDuplicateSummary(): Promise<PowerTabDuplicateSummary> {
+  const tabs = await listPowerTabTabs();
+  return {
+    tabs,
+    closableCount: getClosableDuplicateTabIds(tabs).length,
+  };
+}
+
 export async function closeDuplicateTabsForGroup(group: TabGroup): Promise<void> {
-  const duplicateUrls = new Set(findDuplicateUrls(group.tabs));
-  const kept = new Set<string>();
-  const toClose: number[] = [];
+  await closeTabs(getClosableDuplicateTabIds(group.tabs));
+}
 
-  for (const tab of group.tabs) {
-    if (!duplicateUrls.has(tab.normalizedUrl)) continue;
-    if (!kept.has(tab.normalizedUrl)) {
-      kept.add(tab.normalizedUrl);
-      continue;
-    }
-    if (!tab.active) {
-      toClose.push(tab.id);
-    }
-  }
-
-  await closeTabs(toClose);
+export async function closeDuplicatePowerTabs(): Promise<void> {
+  const tabs = await listPowerTabTabs();
+  await closeTabs(getClosableDuplicateTabIds(tabs));
 }

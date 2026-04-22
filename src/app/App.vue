@@ -44,6 +44,7 @@ const executeCandidateAt = searchState.executeCandidateAt;
 
 const tabGroups = tabsState.tabGroups;
 const tabsLoading = tabsState.isLoading;
+const powerTabDuplicateSummary = tabsState.powerTabDuplicateSummary;
 
 async function handleOpenQuickApp(quickApp: QuickApp) {
   await openUrl(quickApp.url);
@@ -64,6 +65,10 @@ async function handleCloseGroup(group: TabGroup) {
 
 async function handleCloseDuplicates(group: TabGroup) {
   await tabsState.closeDuplicates(group);
+}
+
+async function handleClosePowerTabDuplicates() {
+  await tabsState.closePowerTabDuplicates();
 }
 
 function openSettings() {
@@ -102,10 +107,12 @@ function openSettings() {
       <TabsSection
         :groups="tabGroups"
         :loading="tabsLoading"
+        :power-tab-duplicate-count="powerTabDuplicateSummary.closableCount"
         @focus="handleFocusTab"
         @close-tab="handleCloseTab"
         @close-group="handleCloseGroup"
         @close-duplicates="handleCloseDuplicates"
+        @close-power-tab-duplicates="handleClosePowerTabDuplicates"
       />
     </template>
   </MainShell>

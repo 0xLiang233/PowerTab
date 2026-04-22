@@ -6,6 +6,7 @@ import type { TabEntity, TabGroup } from '@/shared/types/models';
 const props = defineProps<{
   groups: TabGroup[];
   loading?: boolean;
+  powerTabDuplicateCount?: number;
 }>();
 
 const emit = defineEmits<{
@@ -13,6 +14,7 @@ const emit = defineEmits<{
   closeTab: [tab: TabEntity];
   closeGroup: [group: TabGroup];
   closeDuplicates: [group: TabGroup];
+  closePowerTabDuplicates: [];
 }>();
 
 const groupsRef = ref<HTMLElement | null>(null);
@@ -89,12 +91,23 @@ onBeforeUnmount(() => {
 
 <template>
   <section class="tabs-section">
-    <header class="section-header">
-      <div>
+    <header class="section-header tabs-section__header">
+      <div class="tabs-section__header-top">
         <h2>Open Tabs</h2>
-        <p v-if="loading">Refreshing current tabs…</p>
-        <p v-else>{{ groups.length }} groups</p>
+        <button
+          v-if="powerTabDuplicateCount"
+          type="button"
+          class="tab-action-pill"
+          :aria-label="`Close ${powerTabDuplicateCount} extra Power Tab pages`"
+          :title="`Close ${powerTabDuplicateCount} extra Power Tab pages`"
+          @click="emit('closePowerTabDuplicates')"
+        >
+          <span aria-hidden="true">×</span>
+          <span>Close extra Power Tabs {{ powerTabDuplicateCount }}</span>
+        </button>
       </div>
+      <p v-if="loading">Refreshing current tabs…</p>
+      <p v-else>{{ groups.length }} groups</p>
     </header>
 
     <div v-if="groups.length" ref="groupsRef" class="tabs-section__groups">

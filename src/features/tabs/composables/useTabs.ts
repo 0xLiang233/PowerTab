@@ -1,26 +1,34 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue';
-import type { TabEntity, TabGroup } from '@/shared/types/models';
+import type { PowerTabDuplicateSummary, TabEntity, TabGroup } from '@/shared/types/models';
 import {
+  closeDuplicatePowerTabs,
   closeDuplicateTabsForGroup,
   closeGroupTabs,
   closeSingleTab,
   focusOpenTab,
   getOpenTabs,
+  getPowerTabDuplicateSummary,
   getTabGroups,
 } from '@/features/tabs/services/tabsService';
 
 export function useTabs() {
   const tabGroups = ref<TabGroup[]>([]);
   const openTabs = ref<TabEntity[]>([]);
+  const powerTabDuplicateSummary = ref<PowerTabDuplicateSummary>({ tabs: [], closableCount: 0 });
   const isLoading = ref(false);
   const groupOrder = ref<string[]>([]);
 
   async function refresh() {
     isLoading.value = true;
-    const [groups, tabs] = await Promise.all([getTabGroups(), getOpenTabs()]);
+    const [groups, tabs, powerTabSummary] = await Promise.all([
+      getTabGroups(),
+      getOpenTabs(),
+      getPowerTabDuplicateSummary(),
+    ]);
     tabGroups.value = stabilizeGroupOrder(groups, groupOrder.value);
     groupOrder.value = tabGroups.value.map((group) => group.id);
     openTabs.value = tabs;
+    powerTabDuplicateSummary.value = powerTabSummary;
     isLoading.value = false;
   }
 
@@ -40,6 +48,11 @@ export function useTabs() {
 
   async function closeDuplicates(group: TabGroup) {
     await closeDuplicateTabsForGroup(group);
+    await refresh();
+  }
+
+  async function closePowerTabDuplicates() {
+    await closeDuplicatePowerTabs();
     await refresh();
   }
 
@@ -63,12 +76,14 @@ export function useTabs() {
   return {
     tabGroups,
     openTabs,
+    powerTabDuplicateSummary: computed(() => powerTabDuplicateSummary.value),
     isLoading: computed(() => isLoading.value),
     refresh,
     focus,
     closeOne,
     closeGroup,
     closeDuplicates,
+    closePowerTabDuplicates,
   };
 }
 

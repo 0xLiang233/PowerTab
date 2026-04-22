@@ -1,16 +1,54 @@
 export const QUICK_TAB_SWITCHER_CSS = `
 #power-tab-quick-tab-switcher-root {
   all: initial;
+  --power-tab-scrollbar-size: 12px;
+  --power-tab-scrollbar-thumb: rgba(182, 106, 56, 0.48);
+  --power-tab-scrollbar-thumb-hover: rgba(182, 106, 56, 0.64);
+  --power-tab-scrollbar-thumb-active: rgba(182, 106, 56, 0.78);
+  --power-tab-scrollbar-track: rgba(182, 106, 56, 0.08);
 }
 
 #power-tab-quick-tab-switcher-root,
 #power-tab-quick-tab-switcher-root * {
   box-sizing: border-box;
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  scrollbar-width: thin;
+  scrollbar-color: var(--power-tab-scrollbar-thumb) var(--power-tab-scrollbar-track);
 }
 
 #power-tab-quick-tab-switcher-root [hidden] {
   display: none !important;
+}
+
+#power-tab-quick-tab-switcher-root *::-webkit-scrollbar {
+  width: var(--power-tab-scrollbar-size);
+  height: var(--power-tab-scrollbar-size);
+}
+
+#power-tab-quick-tab-switcher-root *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#power-tab-quick-tab-switcher-root *::-webkit-scrollbar-thumb {
+  min-height: 44px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--power-tab-scrollbar-thumb), rgba(125, 113, 104, 0.58));
+  background-clip: padding-box;
+}
+
+#power-tab-quick-tab-switcher-root *::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, var(--power-tab-scrollbar-thumb-hover), rgba(125, 113, 104, 0.72));
+  background-clip: padding-box;
+}
+
+#power-tab-quick-tab-switcher-root *::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, var(--power-tab-scrollbar-thumb-active), rgba(125, 113, 104, 0.82));
+  background-clip: padding-box;
+}
+
+#power-tab-quick-tab-switcher-root *::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .power-tab-switcher__backdrop {
@@ -69,6 +107,7 @@ export const QUICK_TAB_SWITCHER_CSS = `
 }
 
 .power-tab-switcher__item {
+  min-width: 0;
   min-height: 138px;
   display: flex;
   flex-direction: column;
@@ -82,6 +121,15 @@ export const QUICK_TAB_SWITCHER_CSS = `
   text-align: left;
   box-shadow: 0 10px 22px rgba(31, 25, 21, 0.045);
   transition: border-color 140ms ease, background 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.power-tab-switcher__headline {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr);
+  align-items: flex-start;
+  column-gap: 10px;
 }
 
 .power-tab-switcher__item:hover {
@@ -102,6 +150,8 @@ export const QUICK_TAB_SWITCHER_CSS = `
   width: 26px;
   height: 26px;
   display: block;
+  flex: 0 0 26px;
+  min-width: 26px;
 }
 
 .power-tab-switcher__favicon {
@@ -120,14 +170,6 @@ export const QUICK_TAB_SWITCHER_CSS = `
   line-height: 1;
 }
 
-.power-tab-switcher__meta {
-  width: 100%;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
 .power-tab-switcher__title,
 .power-tab-switcher__subtitle {
   display: -webkit-box;
@@ -137,7 +179,9 @@ export const QUICK_TAB_SWITCHER_CSS = `
 }
 
 .power-tab-switcher__title {
-  -webkit-line-clamp: 3;
+  min-width: 0;
+  width: 100%;
+  -webkit-line-clamp: 2;
   font-size: 14px;
   line-height: 1.32;
   font-weight: 600;

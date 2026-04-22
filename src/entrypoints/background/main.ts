@@ -5,11 +5,9 @@ import { getWindowTabs } from '@/features/tabs/services/tabsService';
 import {
   QUICK_TAB_SWITCHER_COMMAND,
   QUICK_TAB_SWITCHER_FOCUS_MESSAGE,
-  QUICK_TAB_SWITCHER_OPEN_MESSAGE,
 } from '@/shared/constants/quickTabSwitcher';
 import { QUICK_TAB_SWITCHER_CSS } from '@/shared/constants/quickTabSwitcherStyles';
-import type { QuickTabSwitcherFocusMessage, QuickTabSwitcherOpenMessage, TabEntity } from '@/shared/types/models';
-import { getHostnameInitial } from '@/shared/utils/url';
+import type { QuickTabSwitcherFocusMessage, TabEntity } from '@/shared/types/models';
 
 function refreshBadge() {
   void updateBadge();
@@ -62,24 +60,15 @@ async function handleCommand(command: string, source: 'command' | 'action') {
   }
 
   try {
-    await chrome.scripting.executeScript({
-      target: { tabId: activeTab.id },
-      func: mountQuickTabSwitcher,
-      args: [QUICK_TAB_SWITCHER_CSS],
-    });
-    console.log('[QuickTabSwitcher][background] inline switcher mounted');
-
     const tabs = await getWindowTabs(activeTab.windowId);
     console.log('[QuickTabSwitcher][background] window tabs', tabs.length, tabs);
 
-    const message: QuickTabSwitcherOpenMessage = {
-      type: QUICK_TAB_SWITCHER_OPEN_MESSAGE,
-      tabs,
-      advance: true,
-    };
-
-    await chrome.tabs.sendMessage(activeTab.id, message);
-    console.log('[QuickTabSwitcher][background] open message sent');
+    await chrome.scripting.executeScript({
+      target: { tabId: activeTab.id },
+      func: mountQuickTabSwitcher,
+      args: [QUICK_TAB_SWITCHER_CSS, tabs, true],
+    });
+    console.log('[QuickTabSwitcher][background] inline switcher mounted');
   } catch (error) {
     console.error('[QuickTabSwitcher][background] command failed', error);
   }
@@ -104,23 +93,47 @@ function isFocusMessage(message: unknown): message is QuickTabSwitcherFocusMessa
   );
 }
 
-function mountQuickTabSwitcher(cssText: string) {
+function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], advance: boolean) {
   const ROOT_ID = 'power-tab-quick-tab-switcher-root';
   const STYLE_ID = 'power-tab-quick-tab-switcher-style';
-  const OPEN_MESSAGE = 'power-tab:open-quick-tab-switcher';
   const FOCUS_MESSAGE = 'power-tab:focus-quick-tab';
+  const CONTROLLER_KEY = '__powerTabQuickTabSwitcherController__';
 
-  if (!document.getElementById(STYLE_ID)) {
-    const style = document.createElement('style');
-    style.id = STYLE_ID;
-    style.textContent = cssText;
-    document.documentElement.appendChild(style);
-  }
+  type QuickTabSwitcherController = {
+    open: (tabs: TabEntity[], advance: boolean) => void;
+    updateCss: (cssText: string) => void;
+  };
 
-  if (document.getElementById(ROOT_ID)) {
+  const controllerWindow = window as Window & {
+    [CONTROLLER_KEY]?: QuickTabSwitcherController;
+  };
+
+  const existingRoot = document.getElementById(ROOT_ID);
+  const existingController = controllerWindow[CONTROLLER_KEY];
+  if (existingRoot?.shadowRoot && existingController) {
+    existingController.updateCss(cssText);
+    existingController.open(nextTabs, advance);
     console.log('[QuickTabSwitcher][content] root already mounted');
     return;
   }
+
+  delete controllerWindow[CONTROLLER_KEY];
+
+  if (existingRoot) {
+    existingRoot.remove();
+  }
+
+  const existingStyle = document.getElementById(STYLE_ID);
+  if (existingStyle) {
+    existingStyle.remove();
+  }
+
+  const host = document.createElement('div');
+  host.id = ROOT_ID;
+
+  const shadowRoot = host.attachShadow({ mode: 'open' });
+  const style = document.createElement('style');
+  style.textContent = cssText;
 
   const root = document.createElement('div');
   root.id = ROOT_ID;
@@ -136,7 +149,8 @@ function mountQuickTabSwitcher(cssText: string) {
       </div>
     </div>
   `;
-  document.documentElement.appendChild(root);
+  shadowRoot.append(style, root);
+  document.documentElement.appendChild(host);
   console.log('[QuickTabSwitcher][content] root mounted');
 
   const backdrop = root.querySelector<HTMLDivElement>('.power-tab-switcher__backdrop');
@@ -192,7 +206,7 @@ function mountQuickTabSwitcher(cssText: string) {
     button.className = 'power-tab-switcher__item';
     button.dataset.tabId = String(tab.id);
     button.dataset.index = String(index);
-    button.innerHTML = '<span class="power-tab-switcher__favicon-shell"></span><span class="power-tab-switcher__meta"><span class="power-tab-switcher__title"></span><span class="power-tab-switcher__subtitle"></span></span>';
+    button.innerHTML = '<span class="power-tab-switcher__headline"><span class="power-tab-switcher__favicon-shell"></span><span class="power-tab-switcher__title"></span></span><span class="power-tab-switcher__subtitle"></span>';
     button.addEventListener('click', () => {
       const nextIndex = Number(button.dataset.index);
       void select(Number.isNaN(nextIndex) ? undefined : nextIndex);
@@ -224,6 +238,7 @@ function mountQuickTabSwitcher(cssText: string) {
     if (subtitle.textContent !== tab.hostname) {
       subtitle.textContent = tab.hostname;
     }
+
     renderFavicon(faviconShell, tab);
   }
 
@@ -258,8 +273,19 @@ function mountQuickTabSwitcher(cssText: string) {
   function createFallbackFavicon(hostname: string) {
     const fallback = document.createElement('span');
     fallback.className = 'power-tab-switcher__favicon power-tab-switcher__favicon--fallback';
-    fallback.textContent = getHostnameInitial(hostname);
+    fallback.textContent = getHostnameInitialForSwitcher(hostname);
     return fallback;
+  }
+
+  function getHostnameInitialForSwitcher(hostname: string): string {
+    const normalized = hostname.trim().replace(/^www\./i, '');
+    const alphanumeric = normalized.match(/[A-Za-z0-9]/)?.[0];
+    if (alphanumeric) {
+      return alphanumeric.toUpperCase();
+    }
+
+    const firstChar = normalized.charAt(0);
+    return firstChar ? firstChar.toUpperCase() : '•';
   }
 
   function updateHighlight() {
@@ -413,12 +439,14 @@ function mountQuickTabSwitcher(cssText: string) {
       close();
     }
   });
-  chrome.runtime.onMessage.addListener((message: unknown) => {
-    if (!message || typeof message !== 'object') return;
-    const candidate = message as Partial<QuickTabSwitcherOpenMessage>;
-    if (candidate.type !== OPEN_MESSAGE || !Array.isArray(candidate.tabs) || typeof candidate.advance !== 'boolean') return;
-    console.log('[QuickTabSwitcher][content] open message received', candidate);
-    open(candidate.tabs as TabEntity[], candidate.advance);
-  });
+
+  controllerWindow[CONTROLLER_KEY] = {
+    open,
+    updateCss(nextCssText: string) {
+      style.textContent = nextCssText;
+    },
+  };
+
+  open(nextTabs, advance);
 
 }

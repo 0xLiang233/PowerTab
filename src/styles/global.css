@@ -9,10 +9,48 @@
   --success: #3d7a4a;
   --danger: #b35a5a;
   --shadow: rgba(31, 25, 21, 0.08);
+  --scrollbar-track: rgba(182, 106, 56, 0.08);
+  --scrollbar-thumb: rgba(182, 106, 56, 0.42);
+  --scrollbar-thumb-hover: rgba(182, 106, 56, 0.58);
+  --scrollbar-thumb-active: rgba(182, 106, 56, 0.72);
+  --scrollbar-size: 12px;
 }
 
 * {
   box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  min-height: 44px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(182, 106, 56, 0.5), rgba(125, 113, 104, 0.54));
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(182, 106, 56, 0.68), rgba(125, 113, 104, 0.72));
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, rgba(182, 106, 56, 0.8), rgba(125, 113, 104, 0.84));
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 body {
@@ -97,9 +135,20 @@ button {
 
 .section-header {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 12px;
+}
+
+.tabs-section__header {
+  display: block;
+}
+
+.tabs-section__header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .section-header h2,

@@ -1,3 +1,9 @@
+import {
+  LOCAL_NETWORK_HOSTNAMES,
+  LOCAL_NETWORK_IPV4_PATTERNS,
+  LOCAL_NETWORK_IPV6_PATTERNS,
+} from '@/shared/constants/tabs';
+
 export function ensureUrlProtocol(value: string): string {
   const trimmed = value.trim();
   if (!trimmed) return trimmed;
@@ -19,6 +25,38 @@ export function tryParseUrl(value: string): URL | null {
   } catch {
     return null;
   }
+}
+
+export function isLocalNetworkUrl(value: string): boolean {
+  const parsed = tryParseUrl(value);
+  if (!parsed) return false;
+  return isLocalNetworkHostname(parsed.hostname);
+}
+
+export function sanitizeFaviconUrl(value: string | undefined): string | undefined {
+  if (!value || isLocalNetworkUrl(value)) {
+    return undefined;
+  }
+  return value;
+}
+
+export function isLocalNetworkHostname(hostname: string): boolean {
+  const normalized = hostname.trim().toLowerCase();
+  if (!normalized) return false;
+  return (
+    LOCAL_NETWORK_HOSTNAMES.includes(normalized) ||
+    isPrivateIpv4Address(normalized) ||
+    isPrivateIpv6Address(normalized)
+  );
+}
+
+function isPrivateIpv4Address(hostname: string): boolean {
+  return LOCAL_NETWORK_IPV4_PATTERNS.some((pattern) => pattern.test(hostname));
+}
+
+function isPrivateIpv6Address(hostname: string): boolean {
+  const normalized = hostname.replace(/^\[|\]$/g, '');
+  return LOCAL_NETWORK_IPV6_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
 export function getDisplayUrl(value: string): string {

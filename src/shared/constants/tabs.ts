@@ -7,6 +7,16 @@ export const INTERNAL_PROTOCOL_PREFIXES = [
   'vivaldi://',
 ];
 
+export const LOCAL_NETWORK_HOSTNAMES = ['localhost', 'localhost.'];
+export const LOCAL_NETWORK_IPV4_PATTERNS = [
+  /^127\./,
+  /^10\./,
+  /^172\.(1[6-9]|2\d|3[0-1])\./,
+  /^192\.168\./,
+  /^169\.254\./,
+];
+export const LOCAL_NETWORK_IPV6_PATTERNS = [/^::1$/, /^(fc|fd)[0-9a-f:]*$/i, /^fe[89ab][0-9a-f:]*$/i];
+
 export const DEFAULT_FAVICON =
   'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"%3E%3Crect width="64" height="64" rx="16" fill="%231a1613"/%3E%3Cpath d="M22 20h12c8 0 14 5 14 12s-6 12-14 12h-4v10H22V20zm8 17h4c4 0 8-1.7 8-5s-4-5-8-5h-4v10z" fill="%23f8f5f0"/%3E%3C/svg%3E';
 

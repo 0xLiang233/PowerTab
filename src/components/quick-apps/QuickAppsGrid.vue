@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { DEFAULT_FAVICON } from '@/shared/constants/tabs';
-import { resolveQuickAppIcon } from '@/domain/quick-apps/resolveQuickAppIcon';
+import { createQuickAppFallbackIcon, resolveQuickAppIcon } from '@/domain/quick-apps/resolveQuickAppIcon';
 import type { QuickApp } from '@/shared/types/models';
 
 const props = defineProps<{
@@ -19,9 +18,9 @@ const emit = defineEmits<{
 const draggedId = ref<string | null>(null);
 const dropTargetId = ref<string | null>(null);
 
-function onIconError(event: Event) {
+function onIconError(quickApp: QuickApp, event: Event) {
   const target = event.target as HTMLImageElement;
-  target.src = DEFAULT_FAVICON;
+  target.src = createQuickAppFallbackIcon(quickApp.url);
 }
 
 function handleOpen(quickApp: QuickApp) {
@@ -90,7 +89,7 @@ function resetDragState() {
           class="quick-app__icon"
           :src="resolveQuickAppIcon(quickApp)"
           :alt="quickApp.name"
-          @error="onIconError"
+          @error="onIconError(quickApp, $event)"
         />
         <span class="quick-app__name">{{ quickApp.name }}</span>
       </button>

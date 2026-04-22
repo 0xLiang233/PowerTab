@@ -10,3 +10,27 @@ export function findDuplicateUrls(tabs: TabEntity[]): string[] {
     .filter(([, count]) => count > 1)
     .map(([url]) => url);
 }
+
+export function getClosableDuplicateTabIds(tabs: TabEntity[]): number[] {
+  const duplicateUrls = new Set(findDuplicateUrls(tabs));
+  const keeperIds = new Set<number>();
+  const grouped = new Map<string, TabEntity[]>();
+
+  for (const tab of tabs) {
+    if (!duplicateUrls.has(tab.normalizedUrl)) continue;
+    const group = grouped.get(tab.normalizedUrl) ?? [];
+    group.push(tab);
+    grouped.set(tab.normalizedUrl, group);
+  }
+
+  for (const group of grouped.values()) {
+    const keeper = group.find((tab) => tab.active) ?? group[0];
+    if (keeper) {
+      keeperIds.add(keeper.id);
+    }
+  }
+
+  return tabs
+    .filter((tab) => duplicateUrls.has(tab.normalizedUrl) && !keeperIds.has(tab.id))
+    .map((tab) => tab.id);
+}
