@@ -1,4 +1,4 @@
-import type { QuickApp, Settings } from '@/shared/types/models';
+import type { QuickApp, ReadLaterItem, Settings } from '@/shared/types/models';
 
 export const DEFAULT_SETTINGS: Settings = {
   defaultEngine: 'google',
@@ -13,6 +13,8 @@ export const DEFAULT_QUICK_APPS: QuickApp[] = [
   createDefaultQuickApp('vercel', 'Vercel', 'https://vercel.com/'),
   createDefaultQuickApp('youtube', 'YouTube', 'https://www.youtube.com/'),
 ];
+
+export const DEFAULT_READ_LATER: ReadLaterItem[] = [];
 
 function createDefaultQuickApp(id: string, name: string, url: string): QuickApp {
   const now = new Date().toISOString();

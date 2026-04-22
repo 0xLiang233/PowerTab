@@ -11,6 +11,17 @@ export interface QuickApp {
   updatedAt: string;
 }
 
+export interface ReadLaterItem {
+  id: string;
+  title: string;
+  url: string;
+  hostname: string;
+  normalizedUrl: string;
+  favIconUrl?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Settings {
   defaultEngine: SearchEngine;
   enableTabSwitcher: boolean;
@@ -18,6 +29,7 @@ export interface Settings {
 
 export interface StorageSchema {
   quickApps: QuickApp[];
+  readLater: ReadLaterItem[];
   settings: Settings;
 }
 

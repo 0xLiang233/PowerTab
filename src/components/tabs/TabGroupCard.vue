@@ -6,6 +6,7 @@ import type { TabEntity, TabGroup } from '@/shared/types/models';
 
 const props = defineProps<{
   group: TabGroup;
+  savedReadLaterUrls?: string[];
 }>();
 
 const emit = defineEmits<{
@@ -13,6 +14,7 @@ const emit = defineEmits<{
   closeTab: [tab: TabEntity];
   closeGroup: [group: TabGroup];
   closeDuplicates: [group: TabGroup];
+  addReadLater: [tab: TabEntity];
 }>();
 
 const closableDuplicateCount = computed(() => getClosableDuplicateTabIds(props.group.tabs).length);
@@ -66,8 +68,10 @@ const groupFaviconUrl = computed(() => props.group.tabs.find((tab) => tab.favIco
         :key="tab.id"
         :tab="tab"
         :is-duplicate="group.duplicateUrls.includes(tab.normalizedUrl)"
+        :is-saved="savedReadLaterUrls?.includes(tab.normalizedUrl)"
         @focus="emit('focus', $event)"
         @close="emit('closeTab', $event)"
+        @add-read-later="emit('addReadLater', $event)"
       />
     </div>
   </section>

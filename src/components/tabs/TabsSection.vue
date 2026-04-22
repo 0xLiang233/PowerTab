@@ -7,6 +7,7 @@ const props = defineProps<{
   groups: TabGroup[];
   loading?: boolean;
   powerTabDuplicateCount?: number;
+  savedReadLaterUrls?: string[];
 }>();
 
 const emit = defineEmits<{
@@ -15,6 +16,7 @@ const emit = defineEmits<{
   closeGroup: [group: TabGroup];
   closeDuplicates: [group: TabGroup];
   closePowerTabDuplicates: [];
+  addReadLater: [tab: TabEntity];
 }>();
 
 const groupsRef = ref<HTMLElement | null>(null);
@@ -114,10 +116,12 @@ onBeforeUnmount(() => {
       <div v-for="group in groups" :key="group.id" class="tabs-section__group-item">
         <TabGroupCard
           :group="group"
+          :saved-read-later-urls="savedReadLaterUrls"
           @focus="emit('focus', $event)"
           @close-tab="emit('closeTab', $event)"
           @close-group="emit('closeGroup', $event)"
           @close-duplicates="emit('closeDuplicates', $event)"
+          @add-read-later="emit('addReadLater', $event)"
         />
       </div>
     </div>

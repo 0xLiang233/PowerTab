@@ -6,11 +6,13 @@ import { getDisplayUrl } from '@/shared/utils/url';
 const props = defineProps<{
   tab: TabEntity;
   isDuplicate: boolean;
+  isSaved?: boolean;
 }>();
 
 const emit = defineEmits<{
   focus: [tab: TabEntity];
   close: [tab: TabEntity];
+  addReadLater: [tab: TabEntity];
 }>();
 
 const displayUrl = computed(() => getDisplayUrl(props.tab.url));
@@ -21,6 +23,16 @@ const displayUrl = computed(() => getDisplayUrl(props.tab.url));
     <button type="button" class="tab-row__main" :title="tab.url" @click="emit('focus', tab)">
       <span class="tab-row__title">{{ tab.title }}</span>
       <span class="tab-row__url">{{ displayUrl }}</span>
+    </button>
+    <button
+      type="button"
+      class="tab-action-icon"
+      :class="{ 'tab-action-icon--active': isSaved }"
+      :aria-label="isSaved ? 'Saved to read later' : 'Save to read later'"
+      :title="isSaved ? 'Saved to read later' : 'Save to read later'"
+      @click="emit('addReadLater', tab)"
+    >
+      <span aria-hidden="true">{{ isSaved ? '•' : '+' }}</span>
     </button>
     <button
       type="button"
