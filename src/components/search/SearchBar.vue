@@ -41,27 +41,37 @@ function onKeydown(event: KeyboardEvent) {
 
 <template>
   <div class="search-bar" @pointerdown="emit('activate')">
-    <input
-      ref="inputRef"
-      v-model="queryModel"
-      class="search-input"
-      type="text"
-      placeholder="Search, open a URL, or jump to an open tab"
-      @focus="emit('activate')"
-      @keydown="onKeydown"
-    />
+    <label class="search-input-shell">
+      <span class="search-input-shell__icon" aria-hidden="true">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <input
+        ref="inputRef"
+        v-model="queryModel"
+        class="search-input"
+        type="text"
+        placeholder="Search, open a URL, or jump to an open tab"
+        @focus="emit('activate')"
+        @keydown="onKeydown"
+      />
+      <span v-if="props.loading" class="search-loading">Matching…</span>
+    </label>
 
-    <select
-      class="search-engine"
-      :value="props.engine"
-      @focus="emit('activate')"
-      @change="emit('update:engine', ($event.target as HTMLSelectElement).value as SearchEngine)"
-    >
-      <option v-for="(label, value) in SEARCH_ENGINE_LABELS" :key="value" :value="value">
-        {{ label }}
-      </option>
-    </select>
-
-    <span v-if="props.loading" class="search-loading">Matching…</span>
+    <div class="search-engine-shell">
+      <select
+        class="search-engine"
+        :value="props.engine"
+        @focus="emit('activate')"
+        @change="emit('update:engine', ($event.target as HTMLSelectElement).value as SearchEngine)"
+      >
+        <option v-for="(label, value) in SEARCH_ENGINE_LABELS" :key="value" :value="value">
+          {{ label }}
+        </option>
+      </select>
+      <span class="search-engine-shell__chevron" aria-hidden="true">⌄</span>
+    </div>
   </div>
 </template>

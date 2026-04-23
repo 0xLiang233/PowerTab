@@ -1,10 +1,11 @@
 import { computed, onMounted, ref } from 'vue';
 import { getSettings, updateSettings } from '@/features/settings/services/settingsRepository';
-import type { SearchEngine } from '@/shared/types/models';
+import type { SearchEngine, StylePreset } from '@/shared/types/models';
 
 export function useSettings() {
   const defaultEngine = ref<SearchEngine>('google');
   const enableTabSwitcher = ref(false);
+  const stylePreset = ref<StylePreset>('mock-v1');
   const isLoading = ref(false);
 
   async function load() {
@@ -12,6 +13,7 @@ export function useSettings() {
     const settings = await getSettings();
     defaultEngine.value = settings.defaultEngine;
     enableTabSwitcher.value = settings.enableTabSwitcher;
+    stylePreset.value = settings.stylePreset;
     isLoading.value = false;
   }
 
@@ -25,14 +27,21 @@ export function useSettings() {
     enableTabSwitcher.value = settings.enableTabSwitcher;
   }
 
+  async function setStylePreset(value: StylePreset) {
+    const settings = await updateSettings({ stylePreset: value });
+    stylePreset.value = settings.stylePreset;
+  }
+
   onMounted(load);
 
   return {
     defaultEngine,
     enableTabSwitcher,
+    stylePreset,
     isLoading: computed(() => isLoading.value),
     load,
     setDefaultEngine,
     setEnableTabSwitcher,
+    setStylePreset,
   };
 }

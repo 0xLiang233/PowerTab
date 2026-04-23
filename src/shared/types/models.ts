@@ -1,4 +1,5 @@
 export type SearchEngine = 'google' | 'bing' | 'duckduckgo';
+export type StylePreset = 'classic' | 'mock-v1';
 
 export interface QuickApp {
   id: string;
@@ -25,6 +26,7 @@ export interface ReadLaterItem {
 export interface Settings {
   defaultEngine: SearchEngine;
   enableTabSwitcher: boolean;
+  stylePreset: StylePreset;
 }
 
 export interface StorageSchema {

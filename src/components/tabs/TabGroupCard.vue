@@ -2,7 +2,9 @@
 import { computed } from 'vue';
 import TabRow from '@/components/tabs/TabRow.vue';
 import { getClosableDuplicateTabIds } from '@/domain/tabs/findDuplicates';
+import { useTabGroupPalette } from '@/features/tabs/composables/useTabGroupPalette';
 import type { TabEntity, TabGroup } from '@/shared/types/models';
+import { getHostnameInitial } from '@/shared/utils/url';
 
 const props = defineProps<{
   group: TabGroup;
@@ -20,10 +22,15 @@ const emit = defineEmits<{
 const closableDuplicateCount = computed(() => getClosableDuplicateTabIds(props.group.tabs).length);
 
 const groupFaviconUrl = computed(() => props.group.tabs.find((tab) => tab.favIconUrl)?.favIconUrl);
+const groupFallbackLabel = computed(() => getHostnameInitial(props.group.domain || props.group.label));
+const groupPalette = useTabGroupPalette({
+  faviconUrl: groupFaviconUrl,
+  seed: computed(() => props.group.domain || props.group.label || props.group.id),
+});
 </script>
 
 <template>
-  <section class="tab-group-card">
+  <section class="tab-group-card" :style="groupPalette.style.value">
     <header class="tab-group-card__header">
       <div>
         <div class="tab-group-card__title-row">
@@ -34,6 +41,7 @@ const groupFaviconUrl = computed(() => props.group.tabs.find((tab) => tab.favIco
             alt=""
             aria-hidden="true"
           />
+          <span v-else class="tab-group-card__favicon tab-group-card__favicon--fallback">{{ groupFallbackLabel }}</span>
           <h3>{{ group.label }}</h3>
         </div>
         <p>{{ group.tabs.length }} tabs</p>

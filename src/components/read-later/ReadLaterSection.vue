@@ -42,7 +42,12 @@ onBeforeUnmount(() => {
   <section class="read-later-section">
     <header class="section-header read-later-section__header">
       <div>
-        <h2>Read Later</h2>
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="color: #6a5cff">
+            <path d="M5 3C3.89543 3 3 3.89543 3 5V21L12 17.5L21 21V5C21 3.89543 20.1046 3 19 3H5Z" />
+          </svg>
+          Read Later
+        </h2>
         <p v-if="loading">Refreshing saved reads…</p>
         <p v-else>{{ items.length }} saved items</p>
       </div>
@@ -94,8 +99,17 @@ onBeforeUnmount(() => {
       </article>
     </div>
 
-    <div v-else class="tabs-section__empty">
-      Save tabs here to revisit them later, even after the browser restarts.
+    <div v-else class="tabs-section__empty read-later-section__empty">
+      <div class="read-later-section__empty-illustration" aria-hidden="true">
+        <svg width="84" height="84" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 3C3.89543 3 3 3.89543 3 5V21L12 17.5L21 21V5C21 3.89543 20.1046 3 19 3H5Z" fill="rgba(106, 92, 255, 0.06)" stroke="#6a5cff" stroke-width="1.2" stroke-linejoin="round" />
+          <path d="M9 10L12 13L15 10" stroke="#6a5cff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" opacity="0.4" />
+        </svg>
+      </div>
+      <div class="read-later-section__empty-copy">
+        <strong>Read Later</strong>
+        <span>Save tabs here to revisit them later, even after the browser restarts.</span>
+      </div>
     </div>
   </section>
 </template>

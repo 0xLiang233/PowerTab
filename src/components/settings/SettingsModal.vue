@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { onBeforeUnmount, watch } from 'vue';
+import type { StylePreset } from '@/shared/types/models';
 
 const props = defineProps<{
   modelValue: boolean;
   enableTabSwitcher: boolean;
+  stylePreset: StylePreset;
 }>();
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean];
   'update:enable-tab-switcher': [value: boolean];
+  'update:style-preset': [value: StylePreset];
 }>();
 
 function close() {
@@ -50,6 +53,26 @@ onBeforeUnmount(() => {
           ×
         </button>
       </div>
+
+      <section class="settings-group">
+        <div class="settings-group__header">
+          <h3>Appearance</h3>
+          <p>Choose the visual style used by the new tab page.</p>
+        </div>
+
+        <label class="settings-field">
+          <span class="settings-field__label">Style preset</span>
+          <span class="settings-field__description">The visual system can support multiple looks later; the mock-inspired preset is available now.</span>
+          <select
+            class="settings-select"
+            :value="stylePreset"
+            @change="emit('update:style-preset', ($event.target as HTMLSelectElement).value as StylePreset)"
+          >
+            <option value="mock-v1">Mock v1</option>
+            <option value="classic">Classic</option>
+          </select>
+        </label>
+      </section>
 
       <section class="settings-group">
         <div class="settings-group__header">

@@ -95,7 +95,10 @@ onBeforeUnmount(() => {
   <section class="tabs-section">
     <header class="section-header tabs-section__header">
       <div class="tabs-section__header-top">
-        <h2>Open Tabs</h2>
+        <div class="tabs-section__title-row">
+          <h2>Open Tabs</h2>
+          <span class="tabs-section__count-pill">{{ groups.length }} groups</span>
+        </div>
         <button
           v-if="powerTabDuplicateCount"
           type="button"
@@ -109,7 +112,6 @@ onBeforeUnmount(() => {
         </button>
       </div>
       <p v-if="loading">Refreshing current tabs…</p>
-      <p v-else>{{ groups.length }} groups</p>
     </header>
 
     <div v-if="groups.length" ref="groupsRef" class="tabs-section__groups">

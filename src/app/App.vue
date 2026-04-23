@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import MainShell from '@/components/layout/MainShell.vue';
 import QuickAppsSection from '@/components/quick-apps/QuickAppsSection.vue';
 import ReadLaterSection from '@/components/read-later/ReadLaterSection.vue';
@@ -32,8 +32,10 @@ const reorderQuickApp = quickAppsState.reorder;
 
 const defaultEngine = settingsState.defaultEngine;
 const enableTabSwitcher = settingsState.enableTabSwitcher;
+const stylePreset = settingsState.stylePreset;
 const setDefaultEngine = settingsState.setDefaultEngine;
 const setEnableTabSwitcher = settingsState.setEnableTabSwitcher;
+const setStylePreset = settingsState.setStylePreset;
 
 const isSettingsOpen = ref(false);
 
@@ -93,62 +95,78 @@ async function handleRemoveReadLater(item: ReadLaterItem) {
 function openSettings() {
   isSettingsOpen.value = true;
 }
+
+function applyStylePreset(value: string) {
+  document.documentElement.dataset.stylePreset = value;
+}
+
+watch(stylePreset, (value) => {
+  applyStylePreset(value);
+});
+
+onMounted(() => {
+  applyStylePreset(stylePreset.value);
+});
 </script>
 
 <template>
-  <MainShell @open-settings="openSettings">
-    <template #search>
-      <SearchSection
-        v-model:query="query"
-        :engine="defaultEngine"
-        :loading="searchLoading"
-        :groups="groupedCandidates"
-        :highlighted-index="highlightedIndex"
-        @update:engine="setDefaultEngine"
-        @move="moveHighlight"
-        @submit="executeHighlighted"
-        @select="executeCandidateAt"
-      />
-    </template>
-
-    <template #quick-apps>
-      <QuickAppsSection
-        :quick-apps="quickApps"
-        @open="handleOpenQuickApp"
-        @add="addQuickApp"
-        @update="(id, patch) => updateQuickApp(id, patch)"
-        @remove="(quickApp) => removeQuickApp(quickApp.id)"
-        @reorder="(fromId, toId) => reorderQuickApp(fromId, toId)"
-      />
-    </template>
-
-    <template #tabs>
-      <div class="tab-dashboard">
-        <TabsSection
-          :groups="tabGroups"
-          :loading="tabsLoading"
-          :power-tab-duplicate-count="powerTabDuplicateSummary.closableCount"
-          :saved-read-later-urls="readLaterUrls"
-          @focus="handleFocusTab"
-          @close-tab="handleCloseTab"
-          @close-group="handleCloseGroup"
-          @close-duplicates="handleCloseDuplicates"
-          @close-power-tab-duplicates="handleClosePowerTabDuplicates"
-          @add-read-later="handleAddReadLater"
+  <div class="app-root" :data-style-preset="stylePreset">
+    <MainShell @open-settings="openSettings">
+      <template #search>
+        <SearchSection
+          v-model:query="query"
+          :engine="defaultEngine"
+          :loading="searchLoading"
+          :groups="groupedCandidates"
+          :highlighted-index="highlightedIndex"
+          @update:engine="setDefaultEngine"
+          @move="moveHighlight"
+          @submit="executeHighlighted"
+          @select="executeCandidateAt"
         />
-        <ReadLaterSection
-          :items="readLaterItems"
-          :loading="readLaterLoading"
-          @open="handleOpenReadLater"
-          @remove="handleRemoveReadLater"
-        />
-      </div>
-    </template>
-  </MainShell>
+      </template>
 
-  <SettingsModal
-    v-model="isSettingsOpen"
-    :enable-tab-switcher="enableTabSwitcher"
-    @update:enable-tab-switcher="setEnableTabSwitcher"
-  />
+      <template #quick-apps>
+        <QuickAppsSection
+          :quick-apps="quickApps"
+          @open="handleOpenQuickApp"
+          @add="addQuickApp"
+          @update="(id, patch) => updateQuickApp(id, patch)"
+          @remove="(quickApp) => removeQuickApp(quickApp.id)"
+          @reorder="(fromId, toId) => reorderQuickApp(fromId, toId)"
+        />
+      </template>
+
+      <template #tabs>
+        <div class="tab-dashboard">
+          <TabsSection
+            :groups="tabGroups"
+            :loading="tabsLoading"
+            :power-tab-duplicate-count="powerTabDuplicateSummary.closableCount"
+            :saved-read-later-urls="readLaterUrls"
+            @focus="handleFocusTab"
+            @close-tab="handleCloseTab"
+            @close-group="handleCloseGroup"
+            @close-duplicates="handleCloseDuplicates"
+            @close-power-tab-duplicates="handleClosePowerTabDuplicates"
+            @add-read-later="handleAddReadLater"
+          />
+          <ReadLaterSection
+            :items="readLaterItems"
+            :loading="readLaterLoading"
+            @open="handleOpenReadLater"
+            @remove="handleRemoveReadLater"
+          />
+        </div>
+      </template>
+    </MainShell>
+
+    <SettingsModal
+      v-model="isSettingsOpen"
+      :enable-tab-switcher="enableTabSwitcher"
+      :style-preset="stylePreset"
+      @update:enable-tab-switcher="setEnableTabSwitcher"
+      @update:style-preset="setStylePreset"
+    />
+  </div>
 </template>

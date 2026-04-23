@@ -7,12 +7,17 @@ const emit = defineEmits<{
 <template>
   <main class="main-shell">
     <header class="hero">
-      <div>
-        <p class="hero__eyebrow">Power Tab</p>
-        <h1>Keep your open tabs useful.</h1>
-        <p class="hero__subtitle">
-          Reuse what is already open, launch what you need next, and clear the rest.
-        </p>
+      <div class="hero__brand-row">
+        <div class="hero__brand-mark" aria-hidden="true">⚡</div>
+        <div class="hero__brand-copy">
+          <div class="hero__title-row">
+            <p class="hero__eyebrow">Power Tab</p>
+            <h1>Keep your open tabs useful.</h1>
+          </div>
+          <p class="hero__subtitle">
+            Reuse what is already open, launch what you need next, and clear the rest.
+          </p>
+        </div>
       </div>
       <button
         type="button"
@@ -21,7 +26,7 @@ const emit = defineEmits<{
         aria-label="Open settings"
         @click="emit('open-settings')"
       >
-        ⚙
+        <span class="hero__settings-icon" aria-hidden="true">⚙</span>
       </button>
     </header>
 
