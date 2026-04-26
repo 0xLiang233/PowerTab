@@ -1,7 +1,8 @@
 import { DEFAULT_QUICK_APPS, DEFAULT_READ_LATER, DEFAULT_SETTINGS } from '@/shared/constants/defaults';
-import type { ReadLaterItem, Settings, StorageSchema, QuickApp } from '@/shared/types/models';
+import type { FaviconCacheEntry, ReadLaterItem, Settings, StorageSchema, QuickApp } from '@/shared/types/models';
 
 const STORAGE_KEYS = {
+  faviconCache: 'faviconCache',
   quickApps: 'quickApps',
   readLater: 'readLater',
   settings: 'settings',
@@ -14,6 +15,15 @@ function getStorageArea(): chrome.storage.StorageArea {
 export async function loadQuickApps(): Promise<QuickApp[]> {
   const result = await getStorageArea().get(STORAGE_KEYS.quickApps);
   return (result[STORAGE_KEYS.quickApps] as QuickApp[] | undefined) ?? DEFAULT_QUICK_APPS;
+}
+
+export async function loadFaviconCache(): Promise<FaviconCacheEntry[]> {
+  const result = await getStorageArea().get(STORAGE_KEYS.faviconCache);
+  return (result[STORAGE_KEYS.faviconCache] as FaviconCacheEntry[] | undefined) ?? [];
+}
+
+export async function saveFaviconCache(entries: FaviconCacheEntry[]): Promise<void> {
+  await getStorageArea().set({ [STORAGE_KEYS.faviconCache]: entries });
 }
 
 export async function saveQuickApps(quickApps: QuickApp[]): Promise<void> {
@@ -42,6 +52,11 @@ export async function saveSettings(settings: Settings): Promise<void> {
 }
 
 export async function loadStorageSnapshot(): Promise<StorageSchema> {
-  const [quickApps, readLater, settings] = await Promise.all([loadQuickApps(), loadReadLater(), loadSettings()]);
-  return { quickApps, readLater, settings };
+  const [faviconCache, quickApps, readLater, settings] = await Promise.all([
+    loadFaviconCache(),
+    loadQuickApps(),
+    loadReadLater(),
+    loadSettings(),
+  ]);
+  return { faviconCache, quickApps, readLater, settings };
 }

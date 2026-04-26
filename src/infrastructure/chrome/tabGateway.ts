@@ -3,6 +3,7 @@ import type { TabEntity } from '@/shared/types/models';
 import { normalizeUrl } from '@/domain/tabs/normalizeUrl';
 import { isLandingPageUrl } from '@/domain/tabs/groupTabs';
 import { sanitizeFaviconUrl } from '@/shared/utils/url';
+import { resolveCachedFavicon } from '@/features/favicon/services/faviconCacheService';
 
 const POWER_TAB_URL = chrome.runtime.getURL('newtab.html');
 const BROWSER_NEWTAB_URLS = new Set(['chrome://newtab', 'edge://newtab']);
@@ -46,17 +47,19 @@ export async function closeTabs(tabIds: number[]): Promise<void> {
   await chrome.tabs.remove(tabIds);
 }
 
-function mapOpenTabs(tabs: chrome.tabs.Tab[]): TabEntity[] {
-  return tabs
+async function mapOpenTabs(tabs: chrome.tabs.Tab[]): Promise<TabEntity[]> {
+  const candidates = tabs
     .filter((tab): tab is MappableChromeTab => typeof tab.id === 'number' && typeof tab.windowId === 'number')
     .map((tab) => ({ tab, tabUrl: getTabUrl(tab) }))
     .filter(hasTabUrl)
     .filter(({ tabUrl }) => !isInternalUrl(tabUrl))
     .map(({ tab, tabUrl }) => mapTabEntity(tab, tabUrl));
+
+  return Promise.all(candidates);
 }
 
-function mapQuickSwitcherTabs(tabs: chrome.tabs.Tab[]): TabEntity[] {
-  return tabs
+async function mapQuickSwitcherTabs(tabs: chrome.tabs.Tab[]): Promise<TabEntity[]> {
+  const candidates = tabs
     .filter((tab): tab is MappableChromeTab => typeof tab.id === 'number' && typeof tab.windowId === 'number')
     .map((tab) => ({ tab, tabUrl: getTabUrl(tab) }))
     .filter(hasTabUrl)
@@ -67,29 +70,37 @@ function mapQuickSwitcherTabs(tabs: chrome.tabs.Tab[]): TabEntity[] {
       }
       return mapTabEntity(tab, tabUrl);
     });
+
+  return Promise.all(candidates);
 }
 
-function mapPowerTabTabs(tabs: chrome.tabs.Tab[]): TabEntity[] {
-  return tabs
+async function mapPowerTabTabs(tabs: chrome.tabs.Tab[]): Promise<TabEntity[]> {
+  const candidates = tabs
     .filter((tab): tab is MappableChromeTab => typeof tab.id === 'number' && typeof tab.windowId === 'number')
     .map((tab) => ({ tab, tabUrl: getTabUrl(tab) }))
     .filter(hasTabUrl)
     .filter(({ tab, tabUrl }) => isPowerTabTab(tab, tabUrl))
     .map(({ tab, tabUrl }) => mapTabEntity(tab, tabUrl, POWER_TAB_URL));
+
+  return Promise.all(candidates);
 }
 
 function hasTabUrl(entry: { tab: MappableChromeTab; tabUrl: string | null }): entry is { tab: MappableChromeTab; tabUrl: string } {
   return typeof entry.tabUrl === 'string';
 }
 
-function mapTabEntity(tab: MappableChromeTab, tabUrl: string, normalizedUrl = normalizeUrl(tabUrl)): TabEntity {
+async function mapTabEntity(tab: MappableChromeTab, tabUrl: string, normalizedUrl = normalizeUrl(tabUrl)): Promise<TabEntity> {
   const parsed = safeUrl(tabUrl);
+  const favIconUrl = await resolveCachedFavicon({
+    pageUrl: tabUrl,
+    favIconUrl: sanitizeFaviconUrl(tab.favIconUrl),
+  });
   return {
     id: tab.id,
     windowId: tab.windowId,
     title: tab.title || tabUrl,
     url: tabUrl,
-    favIconUrl: sanitizeFaviconUrl(tab.favIconUrl),
+    favIconUrl,
     active: Boolean(tab.active),
     hostname: parsed?.hostname || 'unknown',
     normalizedUrl,

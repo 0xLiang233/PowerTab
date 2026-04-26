@@ -29,7 +29,18 @@ export interface Settings {
   stylePreset: StylePreset;
 }
 
+export interface FaviconCacheEntry {
+  key: string;
+  pageUrl: string;
+  faviconUrl?: string;
+  status: 'ready' | 'blocked' | 'failed';
+  sourceUrl?: string;
+  updatedAt: string;
+  expiresAt: string;
+}
+
 export interface StorageSchema {
+  faviconCache: FaviconCacheEntry[];
   quickApps: QuickApp[];
   readLater: ReadLaterItem[];
   settings: Settings;

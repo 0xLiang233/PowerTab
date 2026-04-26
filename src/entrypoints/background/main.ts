@@ -2,6 +2,7 @@ import { getSettings } from '@/features/settings/services/settingsRepository';
 import { updateBadge } from '@/features/tabs/services/badgeService';
 import { focusTab } from '@/infrastructure/chrome/tabGateway';
 import { getWindowTabs } from '@/features/tabs/services/tabsService';
+import { warmFaviconCache } from '@/features/favicon/services/faviconCacheService';
 import {
   QUICK_TAB_SWITCHER_COMMAND,
   QUICK_TAB_SWITCHER_FOCUS_MESSAGE,
@@ -15,11 +16,25 @@ function refreshBadge() {
 
 console.log('[QuickTabSwitcher][background] service worker booted');
 
-chrome.runtime.onInstalled.addListener(refreshBadge);
-chrome.runtime.onStartup.addListener(refreshBadge);
-chrome.tabs.onCreated.addListener(refreshBadge);
+chrome.runtime.onInstalled.addListener(() => {
+  refreshBadge();
+  void warmOpenTabFavicons();
+});
+chrome.runtime.onStartup.addListener(() => {
+  refreshBadge();
+  void warmOpenTabFavicons();
+});
+chrome.tabs.onCreated.addListener((tab) => {
+  refreshBadge();
+  void warmFaviconCache({ pageUrl: tab.url ?? tab.pendingUrl, favIconUrl: tab.favIconUrl });
+});
 chrome.tabs.onRemoved.addListener(refreshBadge);
-chrome.tabs.onUpdated.addListener(refreshBadge);
+chrome.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
+  refreshBadge();
+  if (changeInfo.status === 'complete' || typeof changeInfo.favIconUrl === 'string' || typeof changeInfo.url === 'string') {
+    void warmFaviconCache({ pageUrl: tab.url ?? tab.pendingUrl, favIconUrl: tab.favIconUrl });
+  }
+});
 chrome.commands.onCommand.addListener((command) => {
   console.log('[QuickTabSwitcher][background] command received', command);
   void handleCommand(command, 'command');
@@ -90,6 +105,13 @@ function isFocusMessage(message: unknown): message is QuickTabSwitcherFocusMessa
     candidate.type === QUICK_TAB_SWITCHER_FOCUS_MESSAGE &&
     typeof candidate.tabId === 'number' &&
     typeof candidate.windowId === 'number'
+  );
+}
+
+async function warmOpenTabFavicons(): Promise<void> {
+  const tabs = await chrome.tabs.query({});
+  await Promise.allSettled(
+    tabs.map((tab) => warmFaviconCache({ pageUrl: tab.url ?? tab.pendingUrl, favIconUrl: tab.favIconUrl })),
   );
 }
 
