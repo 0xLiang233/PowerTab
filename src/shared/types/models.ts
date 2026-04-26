@@ -83,6 +83,11 @@ export interface QuickTabSwitcherFocusMessage {
   windowId: number;
 }
 
+export interface QuickTabSwitcherCloseMessage {
+  type: 'power-tab:close-quick-tab';
+  tabId: number;
+}
+
 export type SearchCandidateGroup = 'Open Tabs' | 'Quick Apps' | 'Search';
 export type SearchCandidateType = 'open-tab' | 'quick-app' | 'search-action';
 

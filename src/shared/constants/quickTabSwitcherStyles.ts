@@ -110,6 +110,10 @@ export const QUICK_TAB_SWITCHER_CSS = `
 }
 
 .power-tab-switcher__item {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  contain: layout paint style;
   min-width: 0;
   min-height: 128px;
   display: flex;
@@ -123,30 +127,97 @@ export const QUICK_TAB_SWITCHER_CSS = `
   color: inherit;
   text-align: left;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.01);
-  transition: all 0.15s ease;
   cursor: pointer;
+}
+
+.power-tab-switcher__item::before,
+.power-tab-switcher__item::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.06s ease-out;
+}
+
+.power-tab-switcher__item::before {
+  background: linear-gradient(180deg, rgba(106, 92, 255, 0.08), rgba(106, 92, 255, 0.02));
+}
+
+.power-tab-switcher__item::after {
+  inset: -1px;
+  border: 2px solid rgba(106, 92, 255, 0.88);
+  box-shadow: 0 8px 20px rgba(106, 92, 255, 0.08);
 }
 
 .power-tab-switcher__headline {
   width: 100%;
   min-width: 0;
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr);
-  align-items: center;
+  grid-template-columns: 24px minmax(0, 1fr) 24px;
+  align-items: start;
   column-gap: 10px;
 }
 
-.power-tab-switcher__item:hover {
-  transform: translateY(-1px);
-  border-color: rgba(106, 92, 255, 0.15);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+.power-tab-switcher__close {
+  width: 24px;
+  height: 24px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  margin-top: -2px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  opacity: 0.72;
+  transition: opacity 0.06s ease-out, background-color 0.06s ease-out, color 0.06s ease-out;
 }
 
-.power-tab-switcher__item--active {
-  transform: translateY(-1.5px);
-  border-color: #6a5cff;
-  background: #ffffff;
-  box-shadow: 0 0 0 2px rgba(106, 92, 255, 0.1), 0 8px 20px rgba(106, 92, 255, 0.08);
+.power-tab-switcher__close:hover,
+.power-tab-switcher__close:focus-visible {
+  background: rgba(15, 23, 42, 0.06);
+  color: #475569;
+  opacity: 1;
+  outline: none;
+}
+
+.power-tab-switcher__close svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.power-tab-switcher__item:hover {
+}
+
+.power-tab-switcher__item--current {
+}
+
+.power-tab-switcher__item--current::before {
+  opacity: 1;
+}
+
+.power-tab-switcher__item--preview {
+}
+
+.power-tab-switcher__item--preview::after {
+  opacity: 1;
+}
+
+.power-tab-switcher__item--current.power-tab-switcher__item--preview {
+}
+
+.power-tab-switcher__item--current.power-tab-switcher__item--preview::before {
+  opacity: 1;
+  background: linear-gradient(180deg, rgba(106, 92, 255, 0.12), rgba(106, 92, 255, 0.04));
+}
+
+.power-tab-switcher__item--current.power-tab-switcher__item--preview::after {
+  opacity: 1;
+  box-shadow: 0 10px 22px rgba(106, 92, 255, 0.1);
 }
 
 .power-tab-switcher__favicon-shell {

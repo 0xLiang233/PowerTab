@@ -1,14 +1,15 @@
 import { getSettings } from '@/features/settings/services/settingsRepository';
 import { updateBadge } from '@/features/tabs/services/badgeService';
-import { focusTab } from '@/infrastructure/chrome/tabGateway';
+import { closeTab as closeBrowserTab, focusTab } from '@/infrastructure/chrome/tabGateway';
 import { getWindowTabs } from '@/features/tabs/services/tabsService';
 import { warmFaviconCache } from '@/features/favicon/services/faviconCacheService';
 import {
   QUICK_TAB_SWITCHER_COMMAND,
+  QUICK_TAB_SWITCHER_CLOSE_MESSAGE,
   QUICK_TAB_SWITCHER_FOCUS_MESSAGE,
 } from '@/shared/constants/quickTabSwitcher';
 import { QUICK_TAB_SWITCHER_CSS } from '@/shared/constants/quickTabSwitcherStyles';
-import type { QuickTabSwitcherFocusMessage, TabEntity } from '@/shared/types/models';
+import type { QuickTabSwitcherCloseMessage, QuickTabSwitcherFocusMessage, TabEntity } from '@/shared/types/models';
 
 function refreshBadge() {
   void updateBadge();
@@ -44,9 +45,15 @@ chrome.action.onClicked.addListener((tab) => {
   void handleCommand(QUICK_TAB_SWITCHER_COMMAND, 'action');
 });
 chrome.runtime.onMessage.addListener((message: unknown) => {
-  if (!isFocusMessage(message)) return;
-  console.log('[QuickTabSwitcher][background] focus request', message);
-  void focusTab(message.tabId, message.windowId);
+  if (isFocusMessage(message)) {
+    console.log('[QuickTabSwitcher][background] focus request', message);
+    void focusTab(message.tabId, message.windowId);
+    return;
+  }
+  if (isCloseMessage(message)) {
+    console.log('[QuickTabSwitcher][background] close request', message);
+    void closeBrowserTab(message.tabId);
+  }
 });
 
 refreshBadge();
@@ -108,6 +115,12 @@ function isFocusMessage(message: unknown): message is QuickTabSwitcherFocusMessa
   );
 }
 
+function isCloseMessage(message: unknown): message is QuickTabSwitcherCloseMessage {
+  if (!message || typeof message !== 'object') return false;
+  const candidate = message as Partial<QuickTabSwitcherCloseMessage>;
+  return candidate.type === QUICK_TAB_SWITCHER_CLOSE_MESSAGE && typeof candidate.tabId === 'number';
+}
+
 async function warmOpenTabFavicons(): Promise<void> {
   const tabs = await chrome.tabs.query({});
   await Promise.allSettled(
@@ -119,6 +132,7 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], advance: 
   const ROOT_ID = 'power-tab-quick-tab-switcher-root';
   const STYLE_ID = 'power-tab-quick-tab-switcher-style';
   const FOCUS_MESSAGE = 'power-tab:focus-quick-tab';
+  const CLOSE_MESSAGE = 'power-tab:close-quick-tab';
   const CONTROLLER_KEY = '__powerTabQuickTabSwitcherController__';
 
   type QuickTabSwitcherController = {
@@ -180,7 +194,11 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], advance: 
   const list = root.querySelector<HTMLDivElement>('.power-tab-switcher__list');
   const empty = root.querySelector<HTMLDivElement>('.power-tab-switcher__empty');
   let tabs: TabEntity[] = [];
-  let highlightedIndex = 0;
+  let activeIndex = 0;
+  let previewIndex = 0;
+  const cardStore = new Map<number, HTMLButtonElement>();
+  let activeCard: HTMLButtonElement | null = null;
+  let previewCard: HTMLButtonElement | null = null;
   let isOpen = false;
 
   function render() {
@@ -202,6 +220,7 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], advance: 
       const id = child.dataset.tabId;
       if (id) existing.set(id, child);
     }
+    cardStore.clear();
 
     const nextIds = new Set(tabs.map((tab) => String(tab.id)));
     for (const [id, element] of existing) {
@@ -218,6 +237,7 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], advance: 
         list.appendChild(nextCard);
       }
       nextCard.dataset.index = String(index);
+      cardStore.set(index, nextCard);
       updateCard(nextCard, tab);
     });
   }
@@ -228,21 +248,46 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], advance: 
     button.className = 'power-tab-switcher__item';
     button.dataset.tabId = String(tab.id);
     button.dataset.index = String(index);
-    button.innerHTML = '<span class="power-tab-switcher__headline"><span class="power-tab-switcher__favicon-shell"></span><span class="power-tab-switcher__title"></span></span><span class="power-tab-switcher__subtitle"></span>';
+    button.innerHTML = '<span class="power-tab-switcher__headline"><span class="power-tab-switcher__favicon-shell"></span><span class="power-tab-switcher__title"></span><span class="power-tab-switcher__close" role="button" tabindex="0" aria-label="Close tab" title="Close tab"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 4L12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></span><span class="power-tab-switcher__subtitle"></span>';
     button.addEventListener('click', () => {
       const nextIndex = Number(button.dataset.index);
       void select(Number.isNaN(nextIndex) ? undefined : nextIndex);
     });
-    button.addEventListener('mouseenter', () => {
+    button.addEventListener('pointerenter', () => {
       const nextIndex = Number(button.dataset.index);
       if (Number.isNaN(nextIndex)) return;
-      highlightedIndex = nextIndex;
+      previewIndex = nextIndex;
       updateHighlight();
     });
     button.addEventListener('focus', () => {
       const nextIndex = Number(button.dataset.index);
       if (Number.isNaN(nextIndex)) return;
-      highlightedIndex = nextIndex;
+      previewIndex = nextIndex;
+      updateHighlight();
+    });
+
+    const closeButton = button.querySelector<HTMLElement>('.power-tab-switcher__close');
+    closeButton?.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const nextIndex = Number(button.dataset.index);
+      if (Number.isNaN(nextIndex)) return;
+      void closeAtIndex(nextIndex);
+    });
+    closeButton?.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      event.stopPropagation();
+      const nextIndex = Number(button.dataset.index);
+      if (Number.isNaN(nextIndex)) return;
+      void closeAtIndex(nextIndex);
+    });
+
+    closeButton?.addEventListener('pointerenter', (event) => {
+      event.stopPropagation();
+      const nextIndex = Number(button.dataset.index);
+      if (Number.isNaN(nextIndex)) return;
+      previewIndex = nextIndex;
       updateHighlight();
     });
     return button;
@@ -311,12 +356,33 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], advance: 
   }
 
   function updateHighlight() {
-    if (!list) return;
+    const nextActiveCard = getCardByIndex(activeIndex);
+    const nextPreviewCard = getCardByIndex(previewIndex);
 
-    const cards = [...list.querySelectorAll<HTMLButtonElement>('.power-tab-switcher__item')];
-    cards.forEach((card, index) => {
-      card.classList.toggle('power-tab-switcher__item--active', index === highlightedIndex);
-    });
+    if (activeCard && activeCard !== nextActiveCard) {
+      activeCard.classList.remove('power-tab-switcher__item--current');
+    }
+    if (previewCard && previewCard !== nextPreviewCard) {
+      previewCard.classList.remove('power-tab-switcher__item--preview');
+    }
+
+    if (nextActiveCard && activeCard !== nextActiveCard) {
+      nextActiveCard.classList.add('power-tab-switcher__item--current');
+    }
+    if (nextPreviewCard && previewCard !== nextPreviewCard) {
+      nextPreviewCard.classList.add('power-tab-switcher__item--preview');
+    }
+
+    if (nextActiveCard && nextActiveCard === nextPreviewCard) {
+      nextActiveCard.classList.add('power-tab-switcher__item--current', 'power-tab-switcher__item--preview');
+    }
+
+    activeCard = nextActiveCard;
+    previewCard = nextPreviewCard;
+  }
+
+  function getCardByIndex(index: number): HTMLButtonElement | null {
+    return cardStore.get(index) ?? null;
   }
 
   function open(nextTabs: TabEntity[], advance: boolean) {
@@ -325,19 +391,21 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], advance: 
     isOpen = true;
 
     if (tabs.length === 0) {
-      highlightedIndex = 0;
+      activeIndex = 0;
+      previewIndex = 0;
       render();
       return;
     }
+
+    activeIndex = tabs.findIndex((tab) => tab.active);
+    const baseIndex = activeIndex >= 0 ? activeIndex : 0;
 
     if (wasOpen && advance) {
       move(1);
       return;
     }
 
-    const activeIndex = tabs.findIndex((tab) => tab.active);
-    const baseIndex = activeIndex >= 0 ? activeIndex : 0;
-    highlightedIndex = advance ? (baseIndex + 1) % tabs.length : baseIndex;
+    previewIndex = advance ? (baseIndex + 1) % tabs.length : baseIndex;
     render();
   }
 
@@ -348,7 +416,7 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], advance: 
 
   function move(direction: 1 | -1) {
     if (tabs.length === 0) return;
-    highlightedIndex = (highlightedIndex + direction + tabs.length) % tabs.length;
+    previewIndex = (previewIndex + direction + tabs.length) % tabs.length;
     render();
   }
 
@@ -356,7 +424,7 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], advance: 
     if (!list || tabs.length === 0) return;
 
     const cards = [...list.querySelectorAll<HTMLButtonElement>('.power-tab-switcher__item')];
-    const currentCard = cards[highlightedIndex];
+    const currentCard = cards[previewIndex];
     if (!currentCard) return;
 
     const currentRect = currentCard.getBoundingClientRect();
@@ -367,7 +435,7 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], advance: 
     let bestScore = Number.POSITIVE_INFINITY;
 
     cards.forEach((card, index) => {
-      if (index === highlightedIndex) return;
+      if (index === previewIndex) return;
 
       const rect = card.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
@@ -389,7 +457,7 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], advance: 
     });
 
     if (bestIndex >= 0) {
-      highlightedIndex = bestIndex;
+      previewIndex = bestIndex;
       updateHighlight();
       return;
     }
@@ -399,13 +467,46 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], advance: 
 
   async function select(index?: number) {
     if (typeof index === 'number') {
-      highlightedIndex = index;
+      previewIndex = index;
     }
-    const tab = tabs[highlightedIndex];
+    const tab = tabs[previewIndex];
     console.log('[QuickTabSwitcher][content] select highlighted', tab);
     if (!tab) return;
     close();
     await chrome.runtime.sendMessage({ type: FOCUS_MESSAGE, tabId: tab.id, windowId: tab.windowId });
+  }
+
+  async function closeAtIndex(index: number) {
+    const tab = tabs[index];
+    if (!tab) return;
+
+    tabs = tabs.filter((candidate) => candidate.id !== tab.id);
+    reindexAfterRemoval(index);
+    render();
+
+    await chrome.runtime.sendMessage({ type: CLOSE_MESSAGE, tabId: tab.id });
+  }
+
+  function reindexAfterRemoval(removedIndex: number) {
+    if (tabs.length === 0) {
+      activeIndex = 0;
+      previewIndex = 0;
+      close();
+      return;
+    }
+
+    activeIndex = adjustIndexAfterRemoval(activeIndex, removedIndex, tabs.length);
+    previewIndex = adjustIndexAfterRemoval(previewIndex, removedIndex, tabs.length);
+  }
+
+  function adjustIndexAfterRemoval(currentIndex: number, removedIndex: number, nextLength: number): number {
+    if (currentIndex > removedIndex) {
+      return currentIndex - 1;
+    }
+    if (currentIndex === removedIndex) {
+      return Math.min(removedIndex, nextLength - 1);
+    }
+    return Math.min(currentIndex, nextLength - 1);
   }
 
   function onKeydown(event: KeyboardEvent) {
