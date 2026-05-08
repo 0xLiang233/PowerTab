@@ -68,7 +68,7 @@ function resetDragState() {
 <template>
   <div class="quick-apps-grid">
     <button type="button" class="quick-app quick-app--create" @click="emit('create')">
-      <span class="quick-app__icon quick-app__icon--create">+</span>
+      <span class="quick-app__icon quick-app__icon--create" aria-hidden="true"></span>
       <span class="quick-app__name">Add</span>
     </button>
 

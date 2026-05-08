@@ -32,7 +32,7 @@ const groupPalette = useTabGroupPalette({
 <template>
   <section class="tab-group-card" :style="groupPalette.style.value">
     <header class="tab-group-card__header">
-      <div>
+      <div class="tab-group-card__summary">
         <div class="tab-group-card__title-row">
           <img
             v-if="groupFaviconUrl"
@@ -42,7 +42,7 @@ const groupPalette = useTabGroupPalette({
             aria-hidden="true"
           />
           <span v-else class="tab-group-card__favicon tab-group-card__favicon--fallback">{{ groupFallbackLabel }}</span>
-          <h3>{{ group.label }}</h3>
+          <h3 :title="group.label">{{ group.label }}</h3>
         </div>
         <p>{{ group.tabs.length }} tabs</p>
       </div>

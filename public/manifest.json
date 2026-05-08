@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Power Tab",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "A new-tab launcher and tab manager that reuses open tabs intelligently.",
   "permissions": [
     "tabs",

@@ -30,10 +30,6 @@ const emit = defineEmits<{
       </button>
     </header>
 
-    <section class="main-shell__search">
-      <slot name="search" />
-    </section>
-
     <section class="main-shell__quick-apps">
       <slot name="quick-apps" />
     </section>

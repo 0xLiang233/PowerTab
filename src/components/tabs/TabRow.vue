@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import type { TabEntity } from '@/shared/types/models';
-import { getDisplayUrl, getHostnameInitial } from '@/shared/utils/url';
+import { getDisplayUrl } from '@/shared/utils/url';
 
 const props = defineProps<{
   tab: TabEntity;
@@ -16,15 +16,12 @@ const emit = defineEmits<{
 }>();
 
 const displayUrl = computed(() => getDisplayUrl(props.tab.url));
-const fallbackLabel = computed(() => getHostnameInitial(props.tab.hostname));
 </script>
 
 <template>
   <div class="tab-row" :class="{ 'tab-row--duplicate': isDuplicate }">
     <button type="button" class="tab-row__main" :title="tab.url" @click="emit('focus', tab)">
       <span class="tab-row__meta">
-        <img v-if="tab.favIconUrl" class="tab-row__favicon" :src="tab.favIconUrl" alt="" aria-hidden="true" />
-        <span v-else class="tab-row__favicon tab-row__favicon--fallback">{{ fallbackLabel }}</span>
         <span class="tab-row__copy">
           <span class="tab-row__title">{{ tab.title }}</span>
           <span class="tab-row__url">{{ displayUrl }}</span>
