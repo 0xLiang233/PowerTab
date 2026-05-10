@@ -367,7 +367,7 @@ function mountQuickTabSwitcher(
     button.className = 'power-tab-switcher__item';
     button.dataset.tabId = String(tab.id);
     button.dataset.index = String(index);
-    button.innerHTML = '<span class="power-tab-switcher__headline"><span class="power-tab-switcher__favicon-shell"></span><span class="power-tab-switcher__title"></span><span class="power-tab-switcher__close" role="button" tabindex="0"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 4L12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></span><span class="power-tab-switcher__subtitle"></span>';
+    button.innerHTML = '<span class="power-tab-switcher__headline"><span class="power-tab-switcher__favicon-shell"></span><span class="power-tab-switcher__title"></span><span class="power-tab-switcher__subtitle"></span><span class="power-tab-switcher__close" role="button" tabindex="0"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 4L12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></span>';
     button.addEventListener('click', () => {
       const nextIndex = Number(button.dataset.index);
       void select(Number.isNaN(nextIndex) ? undefined : nextIndex);
@@ -426,8 +426,9 @@ function mountQuickTabSwitcher(
       title.textContent = tab.title;
     }
     title.dataset.currentLabel = labels.current;
-    if (subtitle.textContent !== tab.hostname) {
-      subtitle.textContent = tab.hostname;
+    const subtitleText = formatTabSubtitle(tab);
+    if (subtitle.textContent !== subtitleText) {
+      subtitle.textContent = subtitleText;
     }
 
     renderFavicon(faviconShell, tab);
@@ -640,6 +641,31 @@ function mountQuickTabSwitcher(
     return `${tab.title} ${tab.hostname} ${tab.url}`.toLowerCase();
   }
 
+  function formatTabSubtitle(tab: TabEntity): string {
+    const urlSummary = getUrlSummary(tab.url);
+    return urlSummary ? `${tab.hostname} · ${urlSummary}` : tab.hostname;
+  }
+
+  function getUrlSummary(url: string): string {
+    try {
+      const parsedUrl = new URL(url);
+      const path = parsedUrl.pathname.replace(/\/+/g, '/').replace(/^\/|\/$/g, '');
+      const query = parsedUrl.search;
+      const summary = decodeURIComponentSafe(`${path}${query}`);
+      return summary.length > 58 ? `${summary.slice(0, 57)}…` : summary;
+    } catch {
+      return '';
+    }
+  }
+
+  function decodeURIComponentSafe(value: string): string {
+    try {
+      return decodeURIComponent(value);
+    } catch {
+      return value;
+    }
+  }
+
   function syncStaticLabels() {
     const title = root.querySelector<HTMLElement>('#power-tab-switcher-title');
     const hint = root.querySelector<HTMLElement>('.power-tab-switcher__hint');
@@ -729,6 +755,31 @@ function mountQuickTabSwitcher(
     }
   }
 
+  function onWheel(event: WheelEvent) {
+    if (!isOpen) return;
+
+    event.stopPropagation();
+    if (!list || !list.contains(event.target as Node)) {
+      event.preventDefault();
+      return;
+    }
+
+    const maxScrollTop = list.scrollHeight - list.clientHeight;
+    if (maxScrollTop <= 0) {
+      event.preventDefault();
+      return;
+    }
+
+    const isScrollingUp = event.deltaY < 0;
+    const isScrollingDown = event.deltaY > 0;
+    const atTop = list.scrollTop <= 0;
+    const atBottom = list.scrollTop >= maxScrollTop - 1;
+
+    if ((isScrollingUp && atTop) || (isScrollingDown && atBottom)) {
+      event.preventDefault();
+    }
+  }
+
   searchInput?.addEventListener('input', () => {
     query = searchInput.value;
     previewIndex = 0;
@@ -749,6 +800,7 @@ function mountQuickTabSwitcher(
   });
 
   document.addEventListener('keydown', onKeydown, true);
+  backdrop?.addEventListener('wheel', onWheel, { passive: false, capture: true });
   window.addEventListener('blur', close);
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) {

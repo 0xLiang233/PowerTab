@@ -57,25 +57,30 @@ export const QUICK_TAB_SWITCHER_CSS = `
   z-index: 2147483647;
   display: grid;
   place-items: center;
-  background: rgba(16, 24, 40, 0.08);
+  background: rgba(16, 24, 40, 0.14);
   padding: 24px;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
+  overscroll-behavior: none;
 }
 
 .power-tab-switcher {
   width: min(1200px, 100%);
+  height: min(82vh, 800px);
   max-height: min(82vh, 800px);
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   border: 1px solid rgba(220, 225, 239, 0.25);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.97);
   color: #101828;
   box-shadow: 0 24px 64px rgba(16, 24, 40, 0.12);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(10px) saturate(115%);
+  -webkit-backdrop-filter: blur(10px) saturate(115%);
   padding: 20px 20px 24px;
   font-weight: 450;
+  overscroll-behavior: contain;
 }
 
 .power-tab-switcher__header {
@@ -83,7 +88,7 @@ export const QUICK_TAB_SWITCHER_CSS = `
   align-items: baseline;
   justify-content: space-between;
   gap: 18px;
-  margin-bottom: 14px;
+  margin-bottom: 10px;
 }
 
 .power-tab-switcher__label {
@@ -106,9 +111,9 @@ export const QUICK_TAB_SWITCHER_CSS = `
 .power-tab-switcher__toolbar {
   display: grid;
   grid-template-columns: minmax(280px, 1fr) minmax(250px, 300px);
-  gap: 10px;
+  gap: 8px;
   align-items: stretch;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .power-tab-switcher__toolbar:has(.power-tab-switcher__previous[hidden]) {
@@ -117,15 +122,15 @@ export const QUICK_TAB_SWITCHER_CSS = `
 
 .power-tab-switcher__search {
   min-width: 0;
-  min-height: 44px;
+  min-height: 38px;
   display: grid;
-  grid-template-columns: 16px minmax(0, 1fr) auto;
-  gap: 10px;
+  grid-template-columns: 14px minmax(0, 1fr) auto;
+  gap: 9px;
   align-items: center;
   border: 1px solid rgba(220, 225, 239, 0.46);
-  border-radius: 12px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.56);
-  padding: 0 13px;
+  padding: 0 11px;
 }
 
 .power-tab-switcher__search:focus-within {
@@ -136,8 +141,8 @@ export const QUICK_TAB_SWITCHER_CSS = `
 
 .power-tab-switcher__search-icon {
   position: relative;
-  width: 15px;
-  height: 15px;
+  width: 14px;
+  height: 14px;
   color: #94a3b8;
 }
 
@@ -146,19 +151,19 @@ export const QUICK_TAB_SWITCHER_CSS = `
   position: absolute;
   left: 1px;
   top: 1px;
-  width: 9px;
-  height: 9px;
-  border: 1.8px solid currentColor;
+  width: 8px;
+  height: 8px;
+  border: 1.7px solid currentColor;
   border-radius: 999px;
 }
 
 .power-tab-switcher__search-icon::after {
   content: '';
   position: absolute;
-  left: 10px;
-  top: 11px;
-  width: 6px;
-  height: 1.8px;
+  left: 9px;
+  top: 10px;
+  width: 5px;
+  height: 1.7px;
   border-radius: 999px;
   background: currentColor;
   transform: rotate(45deg);
@@ -173,7 +178,7 @@ export const QUICK_TAB_SWITCHER_CSS = `
   background: transparent;
   color: #101828;
   font: inherit;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.4;
 }
 
@@ -191,10 +196,10 @@ export const QUICK_TAB_SWITCHER_CSS = `
 .power-tab-switcher__previous {
   min-width: 0;
   border: 1px solid rgba(220, 225, 239, 0.48);
-  border-radius: 12px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.62);
   color: #101828;
-  padding: 7px 11px;
+  padding: 6px 10px;
   text-align: left;
   cursor: pointer;
 }
@@ -209,7 +214,7 @@ export const QUICK_TAB_SWITCHER_CSS = `
 
 .power-tab-switcher__previous-label {
   display: block;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   color: #6a5cff;
   font-size: 9px;
   font-weight: 800;
@@ -220,14 +225,14 @@ export const QUICK_TAB_SWITCHER_CSS = `
 .power-tab-switcher__previous-main {
   min-width: 0;
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr) auto;
-  gap: 9px;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  gap: 8px;
   align-items: center;
 }
 
 .power-tab-switcher__previous-favicon {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   display: block;
 }
 
@@ -247,13 +252,13 @@ export const QUICK_TAB_SWITCHER_CSS = `
 
 .power-tab-switcher__previous-title {
   color: #101828;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
 }
 
 .power-tab-switcher__previous-subtitle {
   color: #64748b;
-  font-size: 10px;
+  font-size: 9px;
 }
 
 .power-tab-switcher__previous-key {
@@ -264,9 +269,15 @@ export const QUICK_TAB_SWITCHER_CSS = `
 }
 
 .power-tab-switcher__list {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: auto;
+  align-content: start;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 10px;
+  padding-right: 4px;
+  overscroll-behavior: contain;
 }
 
 .power-tab-switcher__item {
@@ -275,15 +286,14 @@ export const QUICK_TAB_SWITCHER_CSS = `
   isolation: isolate;
   contain: layout paint style;
   min-width: 0;
-  min-height: 128px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
+  height: 76px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
   border: 1px solid rgba(220, 225, 239, 0.35);
-  border-radius: 14px;
+  border-radius: 12px;
   background: #ffffff;
-  padding: 14px;
+  padding: 12px 12px 12px 14px;
   color: inherit;
   text-align: left;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.01);
@@ -306,7 +316,10 @@ export const QUICK_TAB_SWITCHER_CSS = `
 }
 
 .power-tab-switcher__item::before {
-  background: linear-gradient(180deg, rgba(106, 92, 255, 0.08), rgba(106, 92, 255, 0.02));
+  inset: 0 auto 0 0;
+  width: 4px;
+  border-radius: 999px 0 0 999px;
+  background: #6a5cff;
 }
 
 .power-tab-switcher__item::after {
@@ -319,12 +332,23 @@ export const QUICK_TAB_SWITCHER_CSS = `
   width: 100%;
   min-width: 0;
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) 24px;
-  align-items: start;
+  grid-template-columns: 28px minmax(0, 1fr) 24px;
+  grid-template-rows: auto auto;
+  align-items: center;
   column-gap: 10px;
+  row-gap: 4px;
+}
+
+.power-tab-switcher__subtitle {
+  grid-column: 2 / 3;
+  grid-row: 2;
+  min-width: 0;
 }
 
 .power-tab-switcher__close {
+  grid-column: 3;
+  grid-row: 1 / 3;
+  align-self: center;
   width: 24px;
   height: 24px;
   display: inline-grid;
@@ -355,10 +379,12 @@ export const QUICK_TAB_SWITCHER_CSS = `
 }
 
 .power-tab-switcher__item:hover {
-  border-color: rgba(106, 92, 255, 0.2);
+  border-color: rgba(106, 92, 255, 0.18);
+  background: rgba(255, 255, 255, 0.96);
 }
 
 .power-tab-switcher__item--current {
+  background: #f8f7ff;
 }
 
 .power-tab-switcher__item--current::before {
@@ -382,7 +408,8 @@ export const QUICK_TAB_SWITCHER_CSS = `
 
 .power-tab-switcher__item--preview {
   border-color: rgba(106, 92, 255, 0.46);
-  box-shadow: 0 10px 26px rgba(106, 92, 255, 0.08);
+  background: #f6f5ff;
+  box-shadow: 0 10px 24px rgba(106, 92, 255, 0.07);
 }
 
 .power-tab-switcher__item--preview::after {
@@ -395,7 +422,7 @@ export const QUICK_TAB_SWITCHER_CSS = `
 
 .power-tab-switcher__item--current.power-tab-switcher__item--preview::before {
   opacity: 1;
-  background: linear-gradient(180deg, rgba(106, 92, 255, 0.12), rgba(106, 92, 255, 0.04));
+  background: #6a5cff;
 }
 
 .power-tab-switcher__item--current.power-tab-switcher__item--preview::after {
@@ -404,6 +431,9 @@ export const QUICK_TAB_SWITCHER_CSS = `
 }
 
 .power-tab-switcher__favicon-shell {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  align-self: center;
   width: 24px;
   height: 24px;
   display: block;
@@ -429,31 +459,32 @@ export const QUICK_TAB_SWITCHER_CSS = `
 
 .power-tab-switcher__title,
 .power-tab-switcher__subtitle {
-  display: -webkit-box;
   overflow: hidden;
   text-overflow: ellipsis;
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
 }
 
 .power-tab-switcher__title {
+  grid-column: 2;
+  grid-row: 1;
   min-width: 0;
   width: 100%;
-  -webkit-line-clamp: 2;
-  font-size: 14px;
-  line-height: 1.35;
+  font-size: 13px;
+  line-height: 1.25;
   font-weight: 600;
   color: #101828;
 }
 
 .power-tab-switcher__subtitle {
-  -webkit-line-clamp: 2;
   color: #64748b;
-  font-size: 12px;
-  line-height: 1.45;
-  word-break: break-word;
+  font-size: 11px;
+  line-height: 1.3;
 }
 
 .power-tab-switcher__empty {
+  flex: 1 1 auto;
+  display: grid;
+  place-items: center;
   padding: 24px 4px;
   color: #94a3b8;
   font-size: 14px;
