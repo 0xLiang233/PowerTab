@@ -6,6 +6,7 @@ import { useI18n } from '@/shared/i18n';
 
 const props = defineProps<{
   quickApps: QuickApp[];
+  managing: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -26,6 +27,10 @@ function onIconError(quickApp: QuickApp, event: Event) {
 }
 
 function handleOpen(quickApp: QuickApp) {
+  if (props.managing) {
+    emit('edit', quickApp);
+    return;
+  }
   emit('open', quickApp);
 }
 
@@ -79,14 +84,26 @@ function resetDragState() {
       :key="quickApp.id"
       class="quick-app-shell"
       :class="{
+        'quick-app-shell--managing': props.managing,
         'quick-app-shell--dragging': draggedId === quickApp.id,
         'quick-app-shell--drop-target': dropTargetId === quickApp.id && draggedId !== quickApp.id,
       }"
+      :draggable="props.managing"
+      @dragstart="handleDragStart(quickApp, $event)"
       @dragover="handleDragOver(quickApp, $event)"
       @drop="handleDrop(quickApp, $event)"
       @dragend="handleDragEnd"
     >
-      <button type="button" class="quick-app" :title="quickApp.name" @click="handleOpen(quickApp)">
+      <button
+        type="button"
+        class="quick-app"
+        :draggable="props.managing"
+        :title="props.managing ? t('quickApps.manageShortcut') : quickApp.name"
+        @click="handleOpen(quickApp)"
+        @dragstart="handleDragStart(quickApp, $event)"
+        @dragend="handleDragEnd"
+      >
+        <span v-if="props.managing" class="quick-app__drag-cue" aria-hidden="true">⋮⋮</span>
         <img
           class="quick-app__icon"
           :src="resolveQuickAppIcon(quickApp)"
@@ -96,23 +113,15 @@ function resetDragState() {
         <span class="quick-app__name">{{ quickApp.name }}</span>
       </button>
 
-      <div class="quick-app__actions">
+      <div v-if="props.managing" class="quick-app__actions">
         <button
           type="button"
-          class="quick-app__drag-handle"
-          draggable="true"
-          :title="t('quickApps.dragToReorder')"
-          :aria-label="t('quickApps.dragToReorder')"
-          @dragstart="handleDragStart(quickApp, $event)"
-          @dragend="handleDragEnd"
+          class="quick-app__action-button quick-app__action-button--danger"
+          :title="t('quickApps.deleteAction')"
+          :aria-label="t('quickApps.deleteAction')"
+          @click="emit('remove', quickApp)"
         >
-          ≡
-        </button>
-        <button type="button" :title="t('quickApps.editAction')" :aria-label="t('quickApps.editAction')" @click="emit('edit', quickApp)">
-          {{ t('quickApps.editAction') }}
-        </button>
-        <button type="button" :title="t('quickApps.deleteAction')" :aria-label="t('quickApps.deleteAction')" @click="emit('remove', quickApp)">
-          {{ t('quickApps.deleteAction') }}
+          ×
         </button>
       </div>
     </div>

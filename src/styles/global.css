@@ -291,6 +291,24 @@ button {
   line-height: 1.35;
 }
 
+.section-header__action {
+  flex: 0 0 auto;
+  border: 1px solid rgba(220, 225, 239, 0.62);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.88);
+  color: var(--muted-strong);
+  padding: 7px 13px;
+  font-size: 12px;
+  line-height: 1;
+  box-shadow: 0 8px 18px rgba(16, 24, 40, 0.04);
+}
+
+.section-header__action:hover,
+.section-header__action--active {
+  border-color: rgba(106, 92, 255, 0.3);
+  color: var(--accent);
+}
+
 .quick-apps-section,
 .tabs-section,
 .read-later-section,
@@ -344,19 +362,40 @@ button {
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  padding-bottom: 24px;
+  min-width: 82px;
 }
 
 .quick-app-shell--dragging {
   opacity: 0.48;
 }
 
-.quick-app-shell--drop-target .quick-app__icon {
-  border-color: rgba(106, 92, 255, 0.34);
-  box-shadow: 0 0 0 4px rgba(106, 92, 255, 0.09), 0 16px 28px rgba(16, 24, 40, 0.08);
+.quick-app-shell--drop-target::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: -11px;
+  width: 5px;
+  height: 58px;
+  border-radius: 999px;
+  background: rgba(106, 92, 255, 0.82);
+  box-shadow: 0 0 0 4px rgba(106, 92, 255, 0.1), 0 10px 20px rgba(106, 92, 255, 0.2);
+}
+
+.quick-app-shell--managing {
+  cursor: grab;
+}
+
+.quick-app-shell--managing:active {
+  cursor: grabbing;
+}
+
+.quick-app-shell--managing .quick-app__icon {
+  border-color: rgba(106, 92, 255, 0.24);
+  box-shadow: 0 0 0 3px rgba(106, 92, 255, 0.06), 0 10px 22px rgba(16, 24, 40, 0.06);
 }
 
 .quick-app {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -368,7 +407,27 @@ button {
 }
 
 .quick-app--create {
-  padding-bottom: 24px;
+  min-width: 82px;
+}
+
+.quick-app__drag-cue {
+  position: absolute;
+  top: -5px;
+  left: 12px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(220, 225, 239, 0.56);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: 0;
+  box-shadow: 0 8px 18px rgba(16, 24, 40, 0.08);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .quick-app__icon {
@@ -411,6 +470,11 @@ button {
   font-size: 12px;
   line-height: 1.25;
   text-align: center;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
 }
 
 .quick-app-shell:hover .quick-app__icon,
@@ -424,26 +488,11 @@ button {
 
 .quick-app__actions {
   position: absolute;
-  top: calc(100% - 18px);
-  left: 50%;
+  top: -7px;
+  right: 8px;
   display: flex;
   justify-content: center;
-  gap: 6px;
-  padding: 6px 8px;
-  border: 1px solid rgba(220, 225, 239, 0.5);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 10px 22px rgba(16, 24, 40, 0.08);
-  opacity: 0;
-  pointer-events: none;
-  transform: translate(-50%, 4px);
-}
-
-.quick-app-shell:hover .quick-app__actions,
-.quick-app-shell:focus-within .quick-app__actions {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translate(-50%, 0);
+  z-index: 2;
 }
 
 .quick-app-shell--dragging .quick-app__actions,
@@ -452,7 +501,7 @@ button {
   pointer-events: none;
 }
 
-.quick-app__actions button,
+.quick-app__action-button,
 .quick-app-editor__actions button {
   border: 1px solid rgba(220, 225, 239, 0.5);
   border-radius: 999px;
@@ -462,22 +511,31 @@ button {
   font-size: 12px;
 }
 
-.quick-app__drag-handle {
-  width: 30px;
-  padding: 5px 0;
-  cursor: grab;
+.quick-app__action-button {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
   font-size: 14px;
   line-height: 1;
+  box-shadow: 0 8px 18px rgba(16, 24, 40, 0.1);
 }
 
-.quick-app__drag-handle:active {
-  cursor: grabbing;
+.quick-app__action-button--danger {
+  color: #94a3b8;
 }
 
-.quick-app__actions button:hover,
+.quick-app__action-button:not(.quick-app__action-button--danger):hover,
 .quick-app-editor__actions button:hover {
   border-color: rgba(106, 92, 255, 0.3);
   color: var(--accent);
+}
+
+.quick-app__action-button--danger:hover,
+.quick-app__action-button--danger:focus-visible {
+  border-color: rgba(239, 68, 68, 0.32);
+  color: #dc2626;
 }
 
 .tab-action-icon,
@@ -1090,22 +1148,6 @@ button {
 
   .hero__settings {
     align-self: flex-end;
-  }
-
-  .quick-app-shell {
-    padding-bottom: 0;
-  }
-
-  .quick-app--create {
-    padding-bottom: 0;
-  }
-
-  .quick-app__actions {
-    position: static;
-    opacity: 1;
-    pointer-events: auto;
-    transform: none;
-    margin-top: 2px;
   }
 
   .tabs-section__groups {

@@ -20,6 +20,7 @@ const emit = defineEmits<{
 
 const editorOpen = ref(false);
 const editing = ref<QuickApp | null>(null);
+const managing = ref(false);
 const { t } = useI18n();
 
 function openCreate() {
@@ -39,6 +40,11 @@ function handleSave(input: QuickAppInput) {
     emit('add', input);
   }
 }
+
+function handleRemove(quickApp: QuickApp) {
+  if (!window.confirm(t('quickApps.deleteConfirm', { name: quickApp.name }))) return;
+  emit('remove', quickApp);
+}
 </script>
 
 <template>
@@ -48,13 +54,22 @@ function handleSave(input: QuickAppInput) {
         <h2>{{ t('quickApps.title') }}</h2>
         <p>{{ t('quickApps.description') }}</p>
       </div>
+      <button
+        type="button"
+        class="section-header__action"
+        :class="{ 'section-header__action--active': managing }"
+        @click="managing = !managing"
+      >
+        {{ managing ? t('quickApps.doneManaging') : t('quickApps.manage') }}
+      </button>
     </header>
 
     <QuickAppsGrid
       :quick-apps="props.quickApps"
+      :managing="managing"
       @open="emit('open', $event)"
       @edit="openEdit"
-      @remove="emit('remove', $event)"
+      @remove="handleRemove"
       @reorder="(fromId, toId) => emit('reorder', fromId, toId)"
       @create="openCreate"
     />

@@ -43,7 +43,8 @@ export function useQuickApps() {
     if (fromIndex === -1 || toIndex === -1) return;
 
     const [item] = current.splice(fromIndex, 1);
-    current.splice(toIndex, 0, item);
+    const targetIndex = fromIndex < toIndex ? toIndex - 1 : toIndex;
+    current.splice(targetIndex, 0, item);
     await reorderQuickApps(current.map((entry) => entry.id));
     await load();
   }
