@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { reactive, watch } from 'vue';
 import type { QuickApp } from '@/shared/types/models';
+import { useI18n } from '@/shared/i18n';
 
 const props = defineProps<{
   modelValue: boolean;
@@ -17,6 +18,7 @@ const form = reactive({
   url: '',
   iconMode: 'favicon' as 'favicon' | 'default',
 });
+const { t } = useI18n();
 
 watch(
   () => props.editing,
@@ -45,25 +47,25 @@ function submit() {
 <template>
   <div v-if="modelValue" class="quick-app-editor__backdrop" @click.self="close">
     <div class="quick-app-editor">
-      <h3>{{ editing ? 'Edit Quick App' : 'Add Quick App' }}</h3>
+      <h3>{{ editing ? t('quickApps.editTitle') : t('quickApps.addTitle') }}</h3>
       <label>
-        Name
+        {{ t('quickApps.name') }}
         <input v-model="form.name" type="text" />
       </label>
       <label>
-        URL
+        {{ t('quickApps.url') }}
         <input v-model="form.url" type="text" />
       </label>
       <label>
-        Icon
+        {{ t('quickApps.icon') }}
         <select v-model="form.iconMode">
-          <option value="favicon">Use favicon</option>
-          <option value="default">Use default icon</option>
+          <option value="favicon">{{ t('quickApps.useFavicon') }}</option>
+          <option value="default">{{ t('quickApps.useDefaultIcon') }}</option>
         </select>
       </label>
       <div class="quick-app-editor__actions">
-        <button type="button" @click="close">Cancel</button>
-        <button type="button" @click="submit">Save</button>
+        <button type="button" @click="close">{{ t('common.cancel') }}</button>
+        <button type="button" @click="submit">{{ t('common.save') }}</button>
       </div>
     </div>
   </div>

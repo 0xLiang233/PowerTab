@@ -5,6 +5,7 @@ import { getClosableDuplicateTabIds } from '@/domain/tabs/findDuplicates';
 import { useTabGroupPalette } from '@/features/tabs/composables/useTabGroupPalette';
 import type { TabEntity, TabGroup } from '@/shared/types/models';
 import { getHostnameInitial } from '@/shared/utils/url';
+import { useI18n } from '@/shared/i18n';
 
 const props = defineProps<{
   group: TabGroup;
@@ -23,6 +24,7 @@ const closableDuplicateCount = computed(() => getClosableDuplicateTabIds(props.g
 
 const groupFaviconUrl = computed(() => props.group.tabs.find((tab) => tab.favIconUrl)?.favIconUrl);
 const groupFallbackLabel = computed(() => getHostnameInitial(props.group.domain || props.group.label));
+const { t } = useI18n();
 const groupPalette = useTabGroupPalette({
   faviconUrl: groupFaviconUrl,
   seed: computed(() => props.group.domain || props.group.label || props.group.id),
@@ -44,15 +46,15 @@ const groupPalette = useTabGroupPalette({
           <span v-else class="tab-group-card__favicon tab-group-card__favicon--fallback">{{ groupFallbackLabel }}</span>
           <h3 :title="group.label">{{ group.label }}</h3>
         </div>
-        <p>{{ group.tabs.length }} tabs</p>
+        <p>{{ t('tabs.tabCount', { count: group.tabs.length }) }}</p>
       </div>
       <div class="tab-group-card__actions">
         <button
           v-if="closableDuplicateCount"
           type="button"
           class="tab-action-pill"
-          :aria-label="`Close ${closableDuplicateCount} duplicate tabs`"
-          :title="`Close ${closableDuplicateCount} duplicate tabs`"
+          :aria-label="t('tabs.closeDuplicates', { count: closableDuplicateCount })"
+          :title="t('tabs.closeDuplicates', { count: closableDuplicateCount })"
           @click="emit('closeDuplicates', group)"
         >
           <span aria-hidden="true">×</span>
@@ -61,8 +63,8 @@ const groupPalette = useTabGroupPalette({
         <button
           type="button"
           class="tab-action-icon tab-action-icon--danger"
-          aria-label="Close group"
-          title="Close group"
+          :aria-label="t('tabs.closeGroup')"
+          :title="t('tabs.closeGroup')"
           @click="emit('closeGroup', group)"
         >
           <span aria-hidden="true">×</span>

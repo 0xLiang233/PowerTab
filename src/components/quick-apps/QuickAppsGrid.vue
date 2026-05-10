@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { createQuickAppFallbackIcon, resolveQuickAppIcon } from '@/domain/quick-apps/resolveQuickAppIcon';
 import type { QuickApp } from '@/shared/types/models';
+import { useI18n } from '@/shared/i18n';
 
 const props = defineProps<{
   quickApps: QuickApp[];
@@ -17,6 +18,7 @@ const emit = defineEmits<{
 
 const draggedId = ref<string | null>(null);
 const dropTargetId = ref<string | null>(null);
+const { t } = useI18n();
 
 function onIconError(quickApp: QuickApp, event: Event) {
   const target = event.target as HTMLImageElement;
@@ -69,7 +71,7 @@ function resetDragState() {
   <div class="quick-apps-grid">
     <button type="button" class="quick-app quick-app--create" @click="emit('create')">
       <span class="quick-app__icon quick-app__icon--create" aria-hidden="true"></span>
-      <span class="quick-app__name">Add</span>
+      <span class="quick-app__name">{{ t('quickApps.add') }}</span>
     </button>
 
     <div
@@ -99,15 +101,19 @@ function resetDragState() {
           type="button"
           class="quick-app__drag-handle"
           draggable="true"
-          title="Drag to reorder"
-          aria-label="Drag to reorder"
+          :title="t('quickApps.dragToReorder')"
+          :aria-label="t('quickApps.dragToReorder')"
           @dragstart="handleDragStart(quickApp, $event)"
           @dragend="handleDragEnd"
         >
           ≡
         </button>
-        <button type="button" title="Edit quick app" aria-label="Edit quick app" @click="emit('edit', quickApp)">Edit</button>
-        <button type="button" title="Delete quick app" aria-label="Delete quick app" @click="emit('remove', quickApp)">Delete</button>
+        <button type="button" :title="t('quickApps.editAction')" :aria-label="t('quickApps.editAction')" @click="emit('edit', quickApp)">
+          {{ t('quickApps.editAction') }}
+        </button>
+        <button type="button" :title="t('quickApps.deleteAction')" :aria-label="t('quickApps.deleteAction')" @click="emit('remove', quickApp)">
+          {{ t('quickApps.deleteAction') }}
+        </button>
       </div>
     </div>
   </div>

@@ -366,7 +366,7 @@ export const QUICK_TAB_SWITCHER_CSS = `
 }
 
 .power-tab-switcher__item--current .power-tab-switcher__title::after {
-  content: 'Current';
+  content: attr(data-current-label);
   display: inline-flex;
   vertical-align: 1px;
   margin-left: 7px;

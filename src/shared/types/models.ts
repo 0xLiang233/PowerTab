@@ -1,5 +1,6 @@
 export type SearchEngine = 'google' | 'bing' | 'duckduckgo';
 export type StylePreset = 'classic' | 'mock-v1';
+export type Language = 'en' | 'zh-CN';
 
 export interface QuickApp {
   id: string;
@@ -27,6 +28,7 @@ export interface Settings {
   defaultEngine: SearchEngine;
   enableTabSwitcher: boolean;
   stylePreset: StylePreset;
+  language: Language;
 }
 
 export interface FaviconCacheEntry {

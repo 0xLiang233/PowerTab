@@ -2,6 +2,7 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import TabGroupCard from '@/components/tabs/TabGroupCard.vue';
 import type { TabEntity, TabGroup } from '@/shared/types/models';
+import { useI18n } from '@/shared/i18n';
 
 const props = defineProps<{
   groups: TabGroup[];
@@ -20,6 +21,7 @@ const emit = defineEmits<{
 }>();
 
 const groupsRef = ref<HTMLElement | null>(null);
+const { t } = useI18n();
 let resizeObserver: ResizeObserver | null = null;
 let masonryFrame = 0;
 
@@ -96,22 +98,22 @@ onBeforeUnmount(() => {
     <header class="section-header tabs-section__header">
       <div class="tabs-section__header-top">
         <div class="tabs-section__title-row">
-          <h2>Open Tabs</h2>
-          <span class="tabs-section__count-pill">{{ groups.length }} groups</span>
+          <h2>{{ t('tabs.title') }}</h2>
+          <span class="tabs-section__count-pill">{{ t('tabs.groupCount', { count: groups.length }) }}</span>
         </div>
         <button
           v-if="powerTabDuplicateCount"
           type="button"
           class="tab-action-pill"
-          :aria-label="`Close ${powerTabDuplicateCount} extra Power Tab pages`"
-          :title="`Close ${powerTabDuplicateCount} extra Power Tab pages`"
+          :aria-label="t('tabs.closePowerTabs', { count: powerTabDuplicateCount })"
+          :title="t('tabs.closePowerTabs', { count: powerTabDuplicateCount })"
           @click="emit('closePowerTabDuplicates')"
         >
           <span aria-hidden="true">×</span>
-          <span>Close extra Power Tabs {{ powerTabDuplicateCount }}</span>
+          <span>{{ t('tabs.closePowerTabsButton', { count: powerTabDuplicateCount }) }}</span>
         </button>
       </div>
-      <p v-if="loading">Refreshing current tabs…</p>
+      <p v-if="loading">{{ t('tabs.refreshing') }}</p>
     </header>
 
     <div v-if="groups.length" ref="groupsRef" class="tabs-section__groups">
@@ -128,6 +130,6 @@ onBeforeUnmount(() => {
       </div>
     </div>
 
-    <div v-else class="tabs-section__empty">No open web tabs right now.</div>
+    <div v-else class="tabs-section__empty">{{ t('tabs.empty') }}</div>
   </section>
 </template>

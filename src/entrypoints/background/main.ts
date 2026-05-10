@@ -9,9 +9,26 @@ import {
   QUICK_TAB_SWITCHER_FOCUS_MESSAGE,
 } from '@/shared/constants/quickTabSwitcher';
 import { QUICK_TAB_SWITCHER_CSS } from '@/shared/constants/quickTabSwitcherStyles';
+import { messages } from '@/shared/i18n/messages';
+import type { Language } from '@/shared/types/models';
 import type { QuickTabSwitcherCloseMessage, QuickTabSwitcherFocusMessage, TabEntity } from '@/shared/types/models';
 
 const tabActivationHistoryByWindow = new Map<number, number[]>();
+
+type QuickTabSwitcherLabels = {
+  title: string;
+  hint: string;
+  searchPlaceholder: string;
+  previous: string;
+  previousKey: string;
+  previousTitle: string;
+  count: string;
+  searchCount: string;
+  noMatches: string;
+  empty: string;
+  closeTab: string;
+  current: string;
+};
 
 function refreshBadge() {
   void updateBadge();
@@ -98,7 +115,7 @@ async function handleCommand(command: string, source: 'command' | 'action') {
     await chrome.scripting.executeScript({
       target: { tabId: activeTab.id },
       func: mountQuickTabSwitcher,
-      args: [QUICK_TAB_SWITCHER_CSS, tabs, previousTab, true],
+      args: [QUICK_TAB_SWITCHER_CSS, tabs, previousTab, getQuickTabSwitcherLabels(settings.language), true],
     });
     console.log('[QuickTabSwitcher][background] inline switcher mounted');
   } catch (error) {
@@ -161,7 +178,31 @@ function getPreviousTab(tabs: TabEntity[], windowId: number, activeTabId: number
   return tabs.find((tab) => tab.id === previousId) ?? null;
 }
 
-function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], nextPreviousTab: TabEntity | null, advance: boolean) {
+function getQuickTabSwitcherLabels(language: Language): QuickTabSwitcherLabels {
+  const dictionary = messages[language];
+  return {
+    title: dictionary['quickSwitcher.title'],
+    hint: dictionary['quickSwitcher.hint'],
+    searchPlaceholder: dictionary['quickSwitcher.searchPlaceholder'],
+    previous: dictionary['quickSwitcher.previous'],
+    previousKey: dictionary['quickSwitcher.previousKey'],
+    previousTitle: dictionary['quickSwitcher.previousTitle'],
+    count: dictionary['quickSwitcher.count'],
+    searchCount: dictionary['quickSwitcher.searchCount'],
+    noMatches: dictionary['quickSwitcher.noMatches'],
+    empty: dictionary['quickSwitcher.empty'],
+    closeTab: dictionary['quickSwitcher.closeTab'],
+    current: dictionary['quickSwitcher.current'],
+  };
+}
+
+function mountQuickTabSwitcher(
+  cssText: string,
+  nextTabs: TabEntity[],
+  nextPreviousTab: TabEntity | null,
+  nextLabels: QuickTabSwitcherLabels,
+  advance: boolean,
+) {
   const ROOT_ID = 'power-tab-quick-tab-switcher-root';
   const STYLE_ID = 'power-tab-quick-tab-switcher-style';
   const FOCUS_MESSAGE = 'power-tab:focus-quick-tab';
@@ -169,7 +210,7 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], nextPrevi
   const CONTROLLER_KEY = '__powerTabQuickTabSwitcherController__';
 
   type QuickTabSwitcherController = {
-    open: (tabs: TabEntity[], previousTab: TabEntity | null, advance: boolean) => void;
+    open: (tabs: TabEntity[], previousTab: TabEntity | null, labels: QuickTabSwitcherLabels, advance: boolean) => void;
     updateCss: (cssText: string) => void;
   };
 
@@ -181,7 +222,7 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], nextPrevi
   const existingController = controllerWindow[CONTROLLER_KEY];
   if (existingRoot?.shadowRoot && existingController) {
     existingController.updateCss(cssText);
-    existingController.open(nextTabs, nextPreviousTab, advance);
+    existingController.open(nextTabs, nextPreviousTab, nextLabels, advance);
     console.log('[QuickTabSwitcher][content] root already mounted');
     return;
   }
@@ -210,24 +251,24 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], nextPrevi
     <div class="power-tab-switcher__backdrop" hidden>
       <div class="power-tab-switcher" role="dialog" aria-modal="true" aria-labelledby="power-tab-switcher-title">
         <div class="power-tab-switcher__header">
-          <div id="power-tab-switcher-title" class="power-tab-switcher__label">Quick Tab Switcher</div>
-          <div class="power-tab-switcher__hint">Type to search · Tab / arrows · Enter · Shift+Enter previous</div>
+          <div id="power-tab-switcher-title" class="power-tab-switcher__label"></div>
+          <div class="power-tab-switcher__hint"></div>
         </div>
         <div class="power-tab-switcher__toolbar">
           <label class="power-tab-switcher__search">
             <span class="power-tab-switcher__search-icon" aria-hidden="true"></span>
-            <input class="power-tab-switcher__search-input" type="search" placeholder="Search tabs by title, domain, or URL" autocomplete="off" spellcheck="false" />
+            <input class="power-tab-switcher__search-input" type="search" autocomplete="off" spellcheck="false" />
             <span class="power-tab-switcher__search-count"></span>
           </label>
           <button type="button" class="power-tab-switcher__previous" hidden>
-            <span class="power-tab-switcher__previous-label">Previous</span>
+            <span class="power-tab-switcher__previous-label"></span>
             <span class="power-tab-switcher__previous-main">
               <span class="power-tab-switcher__previous-favicon"></span>
               <span class="power-tab-switcher__previous-copy">
                 <span class="power-tab-switcher__previous-title"></span>
                 <span class="power-tab-switcher__previous-subtitle"></span>
               </span>
-              <span class="power-tab-switcher__previous-key">Shift+Enter</span>
+              <span class="power-tab-switcher__previous-key"></span>
             </span>
           </button>
         </div>
@@ -253,6 +294,7 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], nextPrevi
   let allTabs: TabEntity[] = [];
   let visibleTabs: TabEntity[] = [];
   let previousTab: TabEntity | null = null;
+  let labels = nextLabels;
   let query = '';
   let activeIndex = 0;
   let previewIndex = 0;
@@ -267,9 +309,11 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], nextPrevi
     backdrop.hidden = !isOpen;
     empty.hidden = visibleTabs.length !== 0;
     list.hidden = visibleTabs.length === 0;
-    empty.textContent = query ? 'No matching tabs.' : 'No switchable tabs in this window.';
+    empty.textContent = query ? labels.noMatches : labels.empty;
     if (searchCount) {
-      searchCount.textContent = query ? `${visibleTabs.length} / ${allTabs.length}` : `${allTabs.length} tabs`;
+      searchCount.textContent = query
+        ? formatLabel(labels.searchCount, { visible: visibleTabs.length, total: allTabs.length })
+        : formatLabel(labels.count, { count: allTabs.length });
     }
 
     syncCards();
@@ -313,7 +357,7 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], nextPrevi
 
     previousTitle.textContent = previousTab.title;
     previousSubtitle.textContent = previousTab.hostname;
-    previousButton.title = `Switch to previous tab: ${previousTab.title}`;
+    previousButton.title = formatLabel(labels.previousTitle, { title: previousTab.title });
     renderFavicon(previousFavicon, previousTab);
   }
 
@@ -323,7 +367,7 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], nextPrevi
     button.className = 'power-tab-switcher__item';
     button.dataset.tabId = String(tab.id);
     button.dataset.index = String(index);
-    button.innerHTML = '<span class="power-tab-switcher__headline"><span class="power-tab-switcher__favicon-shell"></span><span class="power-tab-switcher__title"></span><span class="power-tab-switcher__close" role="button" tabindex="0" aria-label="Close tab" title="Close tab"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 4L12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></span><span class="power-tab-switcher__subtitle"></span>';
+    button.innerHTML = '<span class="power-tab-switcher__headline"><span class="power-tab-switcher__favicon-shell"></span><span class="power-tab-switcher__title"></span><span class="power-tab-switcher__close" role="button" tabindex="0"><svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 4L12 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 4L4 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></span><span class="power-tab-switcher__subtitle"></span>';
     button.addEventListener('click', () => {
       const nextIndex = Number(button.dataset.index);
       void select(Number.isNaN(nextIndex) ? undefined : nextIndex);
@@ -342,6 +386,10 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], nextPrevi
     });
 
     const closeButton = button.querySelector<HTMLElement>('.power-tab-switcher__close');
+    if (closeButton) {
+      closeButton.setAttribute('aria-label', labels.closeTab);
+      closeButton.title = labels.closeTab;
+    }
     closeButton?.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -377,6 +425,7 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], nextPrevi
     if (title.textContent !== tab.title) {
       title.textContent = tab.title;
     }
+    title.dataset.currentLabel = labels.current;
     if (subtitle.textContent !== tab.hostname) {
       subtitle.textContent = tab.hostname;
     }
@@ -453,14 +502,21 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], nextPrevi
     return cardStore.get(index) ?? null;
   }
 
-  function open(nextTabs: TabEntity[], nextPreviousTab: TabEntity | null, advance: boolean) {
+  function open(
+    nextTabs: TabEntity[],
+    nextPreviousTab: TabEntity | null,
+    nextLabels: QuickTabSwitcherLabels,
+    advance: boolean,
+  ) {
     const wasOpen = isOpen;
     allTabs = nextTabs;
     previousTab = nextPreviousTab;
+    labels = nextLabels;
     query = '';
     if (searchInput) {
       searchInput.value = '';
     }
+    syncStaticLabels();
     isOpen = true;
     applyFilter();
 
@@ -584,6 +640,29 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], nextPrevi
     return `${tab.title} ${tab.hostname} ${tab.url}`.toLowerCase();
   }
 
+  function syncStaticLabels() {
+    const title = root.querySelector<HTMLElement>('#power-tab-switcher-title');
+    const hint = root.querySelector<HTMLElement>('.power-tab-switcher__hint');
+    const previousLabel = root.querySelector<HTMLElement>('.power-tab-switcher__previous-label');
+    const previousKey = root.querySelector<HTMLElement>('.power-tab-switcher__previous-key');
+    if (title) title.textContent = labels.title;
+    if (hint) hint.textContent = labels.hint;
+    if (searchInput) searchInput.placeholder = labels.searchPlaceholder;
+    if (previousLabel) previousLabel.textContent = labels.previous;
+    if (previousKey) previousKey.textContent = labels.previousKey;
+    for (const closeButton of root.querySelectorAll<HTMLElement>('.power-tab-switcher__close')) {
+      closeButton.setAttribute('aria-label', labels.closeTab);
+      closeButton.title = labels.closeTab;
+    }
+  }
+
+  function formatLabel(template: string, replacements: Record<string, string | number>): string {
+    return template.replace(/\{(\w+)\}/g, (match, key: string) => {
+      const value = replacements[key];
+      return value === undefined ? match : String(value);
+    });
+  }
+
   function normalizeIndexes() {
     if (visibleTabs.length === 0) {
       activeIndex = 0;
@@ -684,6 +763,7 @@ function mountQuickTabSwitcher(cssText: string, nextTabs: TabEntity[], nextPrevi
     },
   };
 
-  open(nextTabs, nextPreviousTab, advance);
+  syncStaticLabels();
+  open(nextTabs, nextPreviousTab, nextLabels, advance);
 
 }

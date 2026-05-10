@@ -1,0 +1,31 @@
+<svg width="128" height="128" viewBox="0 0 128 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="22" y1="15" x2="112" y2="118" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8B7CFF"/>
+      <stop offset="0.58" stop-color="#6A5CFF"/>
+      <stop offset="1" stop-color="#3E7BFF"/>
+    </linearGradient>
+    <linearGradient id="bolt" x1="56" y1="30" x2="78" y2="97" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFB14A"/>
+      <stop offset="1" stop-color="#FF6B2B"/>
+    </linearGradient>
+    <filter id="softShadow" x="15" y="22" width="98" height="86" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#202A64" flood-opacity="0.22"/>
+    </filter>
+  </defs>
+
+  <rect x="8" y="8" width="112" height="112" rx="28" fill="url(#bg)"/>
+  <path d="M28 35C28 30.5817 31.5817 27 36 27H82C86.4183 27 90 30.5817 90 35V69C90 73.4183 86.4183 77 82 77H36C31.5817 77 28 73.4183 28 69V35Z" fill="white" fill-opacity="0.28"/>
+  <path d="M40 46C40 41.5817 43.5817 38 48 38H94C98.4183 38 102 41.5817 102 46V82C102 86.4183 98.4183 90 94 90H48C43.5817 90 40 86.4183 40 82V46Z" fill="white" fill-opacity="0.42"/>
+
+  <g filter="url(#softShadow)">
+    <path d="M31 46C31 40.4772 35.4772 36 41 36H87C92.5228 36 97 40.4772 97 46V81C97 86.5228 92.5228 91 87 91H41C35.4772 91 31 86.5228 31 81V46Z" fill="white"/>
+    <path d="M31 46C31 40.4772 35.4772 36 41 36H87C92.5228 36 97 40.4772 97 46V52H31V46Z" fill="#EEF2FF"/>
+    <circle cx="43" cy="44" r="3" fill="#6A5CFF" fill-opacity="0.28"/>
+    <circle cx="53" cy="44" r="3" fill="#6A5CFF" fill-opacity="0.2"/>
+    <circle cx="63" cy="44" r="3" fill="#6A5CFF" fill-opacity="0.14"/>
+  </g>
+
+  <path d="M66.875 25L48 66.625H63.25L58.75 103L81 58.75H65.5L66.875 25Z" fill="url(#bolt)"/>
+  <path d="M66.875 25L48 66.625H63.25L58.75 103L81 58.75H65.5L66.875 25Z" fill="white" fill-opacity="0.12"/>
+</svg>

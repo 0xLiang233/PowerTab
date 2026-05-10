@@ -1,3 +1,6 @@
+import { translate } from '@/shared/i18n';
+import type { Language } from '@/shared/types/models';
+
 export type ReadLaterAgeTone = 'fresh' | 'attention' | 'stale' | 'urgent';
 
 const MINUTE = 60 * 1000;
@@ -12,16 +15,16 @@ export function getReadLaterAgeTone(createdAt: string, now = Date.now()): ReadLa
   return 'fresh';
 }
 
-export function formatReadLaterAge(createdAt: string, now = Date.now()): string {
+export function formatReadLaterAge(createdAt: string, now = Date.now(), language?: Language): string {
   const age = Math.max(0, now - Date.parse(createdAt));
   if (age < HOUR) {
     const minutes = Math.max(1, Math.floor(age / MINUTE));
-    return `Added ${minutes} minute${minutes === 1 ? '' : 's'} ago`;
+    return translate('readLater.age.minutes', { count: minutes, plural: minutes === 1 ? '' : 's' }, language);
   }
   if (age < DAY) {
     const hours = Math.floor(age / HOUR);
-    return `Added ${hours} hour${hours === 1 ? '' : 's'} ago`;
+    return translate('readLater.age.hours', { count: hours, plural: hours === 1 ? '' : 's' }, language);
   }
   const days = Math.floor(age / DAY);
-  return `Added ${days} day${days === 1 ? '' : 's'} ago`;
+  return translate('readLater.age.days', { count: days, plural: days === 1 ? '' : 's' }, language);
 }

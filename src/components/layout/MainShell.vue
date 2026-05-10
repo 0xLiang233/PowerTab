@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from '@/shared/i18n';
+
 const emit = defineEmits<{
   'open-settings': [];
 }>();
+
+const { t } = useI18n();
 </script>
 
 <template>
@@ -12,18 +16,18 @@ const emit = defineEmits<{
         <div class="hero__brand-copy">
           <div class="hero__title-row">
             <p class="hero__eyebrow">Power Tab</p>
-            <h1>Keep your open tabs useful.</h1>
+            <h1>{{ t('app.tagline') }}</h1>
           </div>
           <p class="hero__subtitle">
-            Reuse what is already open, launch what you need next, and clear the rest.
+            {{ t('app.subtitle') }}
           </p>
         </div>
       </div>
       <button
         type="button"
         class="hero__settings"
-        title="Open settings"
-        aria-label="Open settings"
+        :title="t('settings.open')"
+        :aria-label="t('settings.open')"
         @click="emit('open-settings')"
       >
         <span class="hero__settings-icon" aria-hidden="true">⚙</span>

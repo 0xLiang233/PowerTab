@@ -4,6 +4,7 @@ import QuickAppEditor from '@/components/quick-apps/QuickAppEditor.vue';
 import QuickAppsGrid from '@/components/quick-apps/QuickAppsGrid.vue';
 import type { QuickApp } from '@/shared/types/models';
 import type { QuickAppInput } from '@/features/quick-apps/services/quickAppsRepository';
+import { useI18n } from '@/shared/i18n';
 
 const props = defineProps<{
   quickApps: QuickApp[];
@@ -19,6 +20,7 @@ const emit = defineEmits<{
 
 const editorOpen = ref(false);
 const editing = ref<QuickApp | null>(null);
+const { t } = useI18n();
 
 function openCreate() {
   editing.value = null;
@@ -43,8 +45,8 @@ function handleSave(input: QuickAppInput) {
   <section class="quick-apps-section">
     <header class="section-header">
       <div>
-        <h2>Quick Apps</h2>
-        <p>App-like shortcuts that always open a new tab.</p>
+        <h2>{{ t('quickApps.title') }}</h2>
+        <p>{{ t('quickApps.description') }}</p>
       </div>
     </header>
 

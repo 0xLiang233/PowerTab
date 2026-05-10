@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import type { TabEntity } from '@/shared/types/models';
 import { getDisplayUrl } from '@/shared/utils/url';
+import { useI18n } from '@/shared/i18n';
 
 const props = defineProps<{
   tab: TabEntity;
@@ -16,6 +17,7 @@ const emit = defineEmits<{
 }>();
 
 const displayUrl = computed(() => getDisplayUrl(props.tab.url));
+const { t } = useI18n();
 </script>
 
 <template>
@@ -32,8 +34,8 @@ const displayUrl = computed(() => getDisplayUrl(props.tab.url));
       type="button"
       class="tab-action-icon"
       :class="{ 'tab-action-icon--active': isSaved }"
-      :aria-label="isSaved ? 'Saved to read later' : 'Save to read later'"
-      :title="isSaved ? 'Saved to read later' : 'Save to read later'"
+      :aria-label="isSaved ? t('tabs.savedReadLater') : t('tabs.saveReadLater')"
+      :title="isSaved ? t('tabs.savedReadLater') : t('tabs.saveReadLater')"
       @click="emit('addReadLater', tab)"
     >
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -55,8 +57,8 @@ const displayUrl = computed(() => getDisplayUrl(props.tab.url));
     <button
       type="button"
       class="tab-action-icon tab-action-icon--danger"
-      aria-label="Close tab"
-      title="Close tab"
+      :aria-label="t('tabs.closeTab')"
+      :title="t('tabs.closeTab')"
       @click="emit('close', tab)"
     >
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

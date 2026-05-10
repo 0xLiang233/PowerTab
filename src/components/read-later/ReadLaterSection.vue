@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { formatReadLaterAge, getReadLaterAgeTone } from '@/domain/read-later/age';
 import type { ReadLaterItem } from '@/shared/types/models';
 import { getDisplayUrl, getHostnameInitial } from '@/shared/utils/url';
+import { useI18n } from '@/shared/i18n';
 
 const props = defineProps<{
   items: ReadLaterItem[];
@@ -15,12 +16,13 @@ const emit = defineEmits<{
 }>();
 
 const now = ref(Date.now());
+const { locale, t } = useI18n();
 let timerId = 0;
 
 const viewItems = computed(() =>
   props.items.map((item) => ({
     ...item,
-    ageLabel: formatReadLaterAge(item.createdAt, now.value),
+    ageLabel: formatReadLaterAge(item.createdAt, now.value, locale.value),
     tone: getReadLaterAgeTone(item.createdAt, now.value),
     displayUrl: getDisplayUrl(item.url),
     fallbackLabel: getHostnameInitial(item.hostname),
@@ -46,10 +48,10 @@ onBeforeUnmount(() => {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="color: #6a5cff">
             <path d="M5 3C3.89543 3 3 3.89543 3 5V21L12 17.5L21 21V5C21 3.89543 20.1046 3 19 3H5Z" />
           </svg>
-          Read Later
+          {{ t('readLater.title') }}
         </h2>
-        <p v-if="loading">Refreshing saved reads…</p>
-        <p v-else>{{ items.length }} saved items</p>
+        <p v-if="loading">{{ t('readLater.refreshing') }}</p>
+        <p v-else>{{ t('readLater.savedItems', { count: items.length }) }}</p>
       </div>
     </header>
 
@@ -90,8 +92,8 @@ onBeforeUnmount(() => {
         <button
           type="button"
           class="tab-action-icon tab-action-icon--danger"
-          aria-label="Remove from read later"
-          title="Remove from read later"
+          :aria-label="t('readLater.remove')"
+          :title="t('readLater.remove')"
           @click="emit('remove', item)"
         >
           <span aria-hidden="true">×</span>
@@ -107,8 +109,8 @@ onBeforeUnmount(() => {
         </svg>
       </div>
       <div class="read-later-section__empty-copy">
-        <strong>Read Later</strong>
-        <span>Save tabs here to revisit them later, even after the browser restarts.</span>
+        <strong>{{ t('readLater.emptyTitle') }}</strong>
+        <span>{{ t('readLater.emptyDescription') }}</span>
       </div>
     </div>
   </section>

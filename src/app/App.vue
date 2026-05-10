@@ -10,6 +10,7 @@ import { useQuickApps } from '@/features/quick-apps/composables/useQuickApps';
 import { useSettings } from '@/features/settings/services/useSettings';
 import { useTabs } from '@/features/tabs/composables/useTabs';
 import { openUrl } from '@/infrastructure/chrome/tabGateway';
+import { setLocale } from '@/shared/i18n';
 import type { QuickApp, ReadLaterItem, TabEntity, TabGroup } from '@/shared/types/models';
 
 const quickAppsState = useQuickApps();
@@ -25,8 +26,10 @@ const reorderQuickApp = quickAppsState.reorder;
 
 const enableTabSwitcher = settingsState.enableTabSwitcher;
 const stylePreset = settingsState.stylePreset;
+const language = settingsState.language;
 const setEnableTabSwitcher = settingsState.setEnableTabSwitcher;
 const setStylePreset = settingsState.setStylePreset;
+const setLanguage = settingsState.setLanguage;
 
 const isSettingsOpen = ref(false);
 
@@ -87,8 +90,13 @@ watch(stylePreset, (value) => {
   applyStylePreset(value);
 });
 
+watch(language, (value) => {
+  setLocale(value);
+});
+
 onMounted(() => {
   applyStylePreset(stylePreset.value);
+  setLocale(language.value);
 });
 </script>
 
@@ -134,8 +142,10 @@ onMounted(() => {
       v-model="isSettingsOpen"
       :enable-tab-switcher="enableTabSwitcher"
       :style-preset="stylePreset"
+      :language="language"
       @update:enable-tab-switcher="setEnableTabSwitcher"
       @update:style-preset="setStylePreset"
+      @update:language="setLanguage"
     />
   </div>
 </template>
